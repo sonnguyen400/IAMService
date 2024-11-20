@@ -21,14 +21,13 @@ public class SendgridEmailServiceImpl extends AbstractEmailService {
     @Value("${service.mail.sendgrid.apiKey}")
     private String apiKey;
     @Override
-    public CompletableFuture<Void> sendEmail(String dest, String subject, String body) {
-        System.out.println("Sending email from"+ this.from);
+    public void sendEmail(String dest, String subject, String body) {
         Email from=new Email(this.from);
-        return CompletableFuture.runAsync(()->{
-            Email to=new Email(dest);
-            Content content1=new Content(MediaType.TEXT_HTML.getType(), body);
-            Mail mail=new Mail(from,subject,to,content1);
-            SendGrid sendGrid=new SendGrid(apiKey);
+        CompletableFuture.runAsync(() -> {
+            Email to = new Email(dest);
+            Content content1 = new Content(MediaType.TEXT_HTML.getType(), body);
+            Mail mail = new Mail(from, subject, to, content1);
+            SendGrid sendGrid = new SendGrid(apiKey);
             Request request = new Request();
             try {
                 request.setMethod(Method.POST);

@@ -32,7 +32,7 @@ public class RestExceptionHandler {
     }
     @ExceptionHandler(InvalidArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String handleInvalidArgumentException(DuplicatedException e) {
+    public String handleInvalidArgumentException(InvalidArgumentException e) {
         return e.getMessage();
     }
 }

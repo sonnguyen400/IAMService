@@ -3,26 +3,37 @@ package com.sonnguyen.iam.utils;
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.security.Keys;
 import org.springframework.stereotype.Component;
 
+import javax.crypto.SecretKey;
+import java.util.Base64;
 import java.util.Date;
+import java.util.Map;
 
 @Component
 public class JWTUtils {
-    private String secretKey = "your_secret_key"; // Tạo token
+    private String secretKey = "fsigiwfysgiwyfgaiygiaygfdiyagddadad"; // Tạo token
 
+
+    private SecretKey getSignKey(){
+        return Keys.hmacShaKeyFor(secretKey.getBytes());
+    }
     public String generateToken(String subject) {
         return Jwts.builder().setSubject(subject).setIssuedAt(new Date()).setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))// 10 giờ
-                .signWith(SignatureAlgorithm.HS256, secretKey).compact();
+                .signWith(getSignKey()).compact();
     }
     public String generateToken(String subject, Long expirationTimeMillis) {
         return Jwts.builder().setSubject(subject).setIssuedAt(new Date()).setExpiration(new Date(expirationTimeMillis))
-                .signWith(SignatureAlgorithm.HS256, secretKey).compact();
+                .signWith(getSignKey()).compact();
     }
-
+    public String generateToken(Map<String,Object> map,String subject, Long expirationTimeMillis) {
+        return Jwts.builder().setSubject(subject).setClaims(map).setIssuedAt(new Date()).setExpiration(new Date(expirationTimeMillis))
+                .signWith(getSignKey()).compact();
+    }
     // Giải mã token và lấy thông tin người dùng
     public Claims extractClaims(String token) {
-        return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
+        return Jwts.parserBuilder().setSigningKey(getSignKey()).build().parseClaimsJws(token).getBody();
     }
     // Lấy subject từ token
     public String extractSubject(String token) {

@@ -16,5 +16,6 @@ service:
   mail:
     from: sonnguyen9616@gmail.com
     sendgrid:
-      apiKey: "hgb"
+      apiKey: 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
+
 
