@@ -1,13 +1,12 @@
 package com.sonnguyen.iam.controller;
 
-import com.sonnguyen.iam.model.Account;
 import com.sonnguyen.iam.service.AccountService;
+import com.sonnguyen.iam.viewmodel.AccountGetVm;
 import com.sonnguyen.iam.viewmodel.AccountPostVm;
 import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -17,7 +16,7 @@ import org.springframework.web.bind.annotation.*;
 public class AccountController {
     AccountService accountService;
     @PostMapping(value = "/register")
-    public Account registerNewAccount(
+    public AccountGetVm registerNewAccount(
              @Valid @RequestBody AccountPostVm account
     ) {
         return accountService.registerNewAccount(account);
@@ -31,5 +30,9 @@ public class AccountController {
     public String activeAccountByActiveCode(@RequestParam String code){
         accountService.verifyAccountByActiveCode(code);
         return "Active account successfully";
+    }
+    @GetMapping(value = "/{id}")
+    public AccountGetVm getAccountById(@PathVariable Long id) {
+        return accountService.findById(id);
     }
 }
