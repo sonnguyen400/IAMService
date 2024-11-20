@@ -30,7 +30,6 @@ public class JwtFilter extends OncePerRequestFilter {
         Claims token= requestUtils.extractJwtClaimFromCookie(request, AuthenticationService.authCookie);
         if(token!=null&&token.getSubject()!=null&& !token.getSubject().isEmpty()){
             UsernamePasswordAuthenticationToken authenticationToken=new UsernamePasswordAuthenticationToken(token.getSubject(),null, List.of());
-//            authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
         }
         filterChain.doFilter(request,response);

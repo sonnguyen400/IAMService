@@ -7,11 +7,15 @@ import jakarta.persistence.Id;
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Size;
+import lombok.Builder;
 import lombok.Data;
+import lombok.NoArgsConstructor;
+import lombok.RequiredArgsConstructor;
 import org.hibernate.validator.constraints.Length;
 
 @Entity
 @Data
+@NoArgsConstructor
 public class Account extends AbstractAuditEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -23,4 +27,11 @@ public class Account extends AbstractAuditEntity{
     private String password;
     private Boolean isEnabled;
     private Integer consecutiveLoginFailures;
+    @Builder
+    public Account(String email, String password, Boolean isEnabled, Integer consecutiveLoginFailures) {
+        this.email = email;
+        this.password = password;
+        this.isEnabled = isEnabled;
+        this.consecutiveLoginFailures = consecutiveLoginFailures;
+    }
 }

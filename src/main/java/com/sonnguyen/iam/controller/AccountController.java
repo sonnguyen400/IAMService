@@ -23,11 +23,13 @@ public class AccountController {
         return accountService.registerNewAccount(account);
     }
     @GetMapping(value = "/verify")
-    public void verifyAccount(@RequestParam String email){
+    public String verifyAccount(@RequestParam String email){
         accountService.sendActiveAccountEmail(email);
+        return String.format("Send activation code to email %s",email);
     }
     @GetMapping(value = "/active")
-    public void activeAccountByActiveCode(@RequestParam String code){
+    public String activeAccountByActiveCode(@RequestParam String code){
         accountService.verifyAccountByActiveCode(code);
+        return "Active account successfully";
     }
 }

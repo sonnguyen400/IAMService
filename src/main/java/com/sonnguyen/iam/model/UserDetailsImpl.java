@@ -42,6 +42,6 @@ public class UserDetailsImpl implements UserDetails {
 
     @Override
     public boolean isAccountNonLocked() {
-        return consecutiveLoginFailures>=3;
+        return consecutiveLoginFailures<3;
     }
 }

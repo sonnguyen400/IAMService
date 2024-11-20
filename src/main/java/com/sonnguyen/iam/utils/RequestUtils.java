@@ -1,6 +1,8 @@
 package com.sonnguyen.iam.utils;
 
+import com.sonnguyen.iam.exception.ExpiredTokenException;
 import io.jsonwebtoken.Claims;
+import io.jsonwebtoken.ExpiredJwtException;
 import jakarta.servlet.http.Cookie;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
@@ -21,11 +23,14 @@ public class RequestUtils {
     public Claims extractJwtClaimFromCookie(HttpServletRequest request, String cookieName)  {
         Cookie cookie= WebUtils.getCookie(request,cookieName);
         if(cookie != null){
+            if(jwtProvider.isTokenExpired(cookie.getValue())){
+                throw new ExpiredTokenException("Expired token");
+            }
             return jwtProvider.extractClaims(cookie.getValue());
         }
         return null;
     }
-    public Cookie getExpiredCookie(String cookie){
+    public Cookie generateExpired(String cookie){
         Cookie expiredCookie=new Cookie(cookie,"");
         expiredCookie.setMaxAge(0);
         return expiredCookie;

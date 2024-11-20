@@ -30,10 +30,9 @@ public class AuthenticationService {
         return handleLoginSuccess(authenticatedAuth);
     }
     public ResponseEntity<String> handleLoginSuccess(Authentication authentication) {
-        System.out.println(authentication.getName());
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE,generateAccessCookie(authentication.getName()).toString())
-                .body(authentication.getName());
+                .body("login successfully");
     }
     public ResponseCookie generateAccessCookie(String subject){
         return ResponseCookie.from(authCookie,jwtUtils.generateToken(subject))

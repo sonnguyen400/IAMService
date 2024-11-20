@@ -38,11 +38,14 @@ public class AccountService {
                 .ifPresent((duplicatedAccount) -> {
                     throw new DuplicatedException(String.format("Duplicated email %s", duplicatedAccount.getEmail()));
                 });
-        Account account = new Account();
-        account.setEmail(accountPostVm.email());
-        account.setIsEnabled(false);
-        account.setPassword(argon2PasswordEncoder.encode(accountPostVm.password()));
-        return accountRepository.save(account);
+        Account initialAccount = Account
+                .builder()
+                .email(accountPostVm.email())
+                .isEnabled(false)
+                .password(argon2PasswordEncoder.encode(accountPostVm.password()))
+                .consecutiveLoginFailures(0)
+                .build();
+        return accountRepository.save(initialAccount);
     }
     public void sendActiveAccountEmail(String email) {
         accountRepository.findByEmail(email).orElseThrow(()->new InvalidArgumentException(String.format("Email %s not found", email)));
