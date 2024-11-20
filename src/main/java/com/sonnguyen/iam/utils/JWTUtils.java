@@ -15,13 +15,17 @@ public class JWTUtils {
         return Jwts.builder().setSubject(subject).setIssuedAt(new Date()).setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))// 10 giờ
                 .signWith(SignatureAlgorithm.HS256, secretKey).compact();
     }
+    public String generateToken(String subject, Long expirationTimeMillis) {
+        return Jwts.builder().setSubject(subject).setIssuedAt(new Date()).setExpiration(new Date(expirationTimeMillis))
+                .signWith(SignatureAlgorithm.HS256, secretKey).compact();
+    }
 
     // Giải mã token và lấy thông tin người dùng
     public Claims extractClaims(String token) {
         return Jwts.parser().setSigningKey(secretKey).parseClaimsJws(token).getBody();
     }
     // Lấy subject từ token
-    public String extractUsername(String token) {
+    public String extractSubject(String token) {
         return extractClaims(token).getSubject();
     }
 
@@ -32,6 +36,6 @@ public class JWTUtils {
 
     // Xác thực token
     public boolean validateToken(String token, String subject) {
-        return (subject.equals(extractUsername(token)) && !isTokenExpired(token));
+        return (subject.equals(extractSubject(token)) && !isTokenExpired(token));
     }
 }

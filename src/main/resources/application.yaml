@@ -12,3 +12,9 @@ logging:
   level:
     org.springframework.security: trace
 debug: true
+service:
+  mail:
+    from: sonnguyen9616@gmail.com
+    sendgrid:
+      apiKey: "hgb"
+

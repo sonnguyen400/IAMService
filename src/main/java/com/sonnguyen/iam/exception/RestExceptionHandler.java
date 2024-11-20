@@ -30,4 +30,9 @@ public class RestExceptionHandler {
     public String handleDuplicatedException(DuplicatedException e) {
         return e.getMessage();
     }
+    @ExceptionHandler(InvalidArgumentException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleInvalidArgumentException(DuplicatedException e) {
+        return e.getMessage();
+    }
 }
