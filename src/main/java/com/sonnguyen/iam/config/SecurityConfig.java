@@ -1,5 +1,6 @@
 package com.sonnguyen.iam.config;
 
+import com.sonnguyen.iam.security.JwtFilter;
 import com.sonnguyen.iam.service.UserDetailsServiceImpl;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -16,6 +17,7 @@ import org.springframework.security.config.annotation.web.configurers.AbstractHt
 import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.security.web.SecurityFilterChain;
+import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.security.web.csrf.CsrfFilter;
 
 @Configuration
@@ -23,16 +25,21 @@ import org.springframework.security.web.csrf.CsrfFilter;
 @FieldDefaults(makeFinal = true,level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 public class SecurityConfig {
+    JwtFilter jwtFilter;
     Argon2PasswordEncoder argon2PasswordEncoder;
     UserDetailsService userDetailsService;
     @Bean
     public SecurityFilterChain configSecurity(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(request -> {
-            request.requestMatchers("/api/v1/account/**").permitAll();
+            request
+                    .requestMatchers("/api/v1/account/**","/api/v1/auth/**").permitAll()
+                    .anyRequest().authenticated();
         });
         http.csrf(AbstractHttpConfigurer::disable);
+        http.addFilterBefore(jwtFilter, UsernamePasswordAuthenticationFilter.class);
         return http.build();
     }
+
     @Bean
     public AuthenticationProvider authenticationProvider(){
         final DaoAuthenticationProvider authenticationProvider=new DaoAuthenticationProvider();
