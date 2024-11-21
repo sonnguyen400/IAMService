@@ -1,6 +1,5 @@
 package com.sonnguyen.iam.service;
 
-import com.sonnguyen.iam.exception.InvalidArgumentException;
 import com.sonnguyen.iam.exception.ResourceNotFoundException;
 import com.sonnguyen.iam.model.UserProfile;
 import com.sonnguyen.iam.repository.UserProfileRepository;
@@ -24,9 +23,9 @@ public class UserProfileService {
         return userProfileRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("User with id " + id + " not found"));
     }
     public UserProfile saveUserProfile(UserProfile userProfile, MultipartFile file) {
-        Optional<UserProfile> existedProfile=userProfileRepository.findByAccount_id(userProfile.getId());
+        Optional<UserProfile> existedProfile=userProfileRepository.findByAccount_id(userProfile.getAccount_id());
         existedProfile.ifPresent(profile -> userProfile.setId(profile.getId()));
-
+        log.info("Saving user detail {}", userProfile.getId());
         if(file!=null){
             String picture_url=(String) cloudinaryService.upload(file).get("url");
             userProfile.setPicture_url(picture_url);

@@ -4,7 +4,6 @@ import com.sonnguyen.iam.exception.DuplicatedException;
 import com.sonnguyen.iam.exception.InvalidArgumentException;
 import com.sonnguyen.iam.exception.ResourceNotFoundException;
 import com.sonnguyen.iam.model.Account;
-import com.sonnguyen.iam.model.Permission;
 import com.sonnguyen.iam.repository.AccountRepository;
 import com.sonnguyen.iam.utils.JWTUtils;
 import com.sonnguyen.iam.viewmodel.AccountGetVm;

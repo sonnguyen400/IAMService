@@ -1,6 +1,5 @@
 package com.sonnguyen.iam.service;
 
-import com.sonnguyen.iam.model.Account;
 import com.sonnguyen.iam.model.PermissionDetail;
 import com.sonnguyen.iam.model.UserDetailsImpl;
 import lombok.AccessLevel;
