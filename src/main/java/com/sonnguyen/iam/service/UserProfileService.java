@@ -50,7 +50,7 @@ public class UserProfileService {
         return "Update profile successfully";
     }
     public UserProfile initUserProfile(String email) {
-        Account account=accountService.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("Account with email " + userProfilePostVm.email() + " not found"));
+        Account account=accountService.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("Account with email " +email+ " not found"));
         Optional<UserProfile> userProfile= userProfileRepository.findByAccount_id(account.getId());
         return userProfile.orElseGet(() -> userProfileRepository.save(UserProfile
                 .builder()
