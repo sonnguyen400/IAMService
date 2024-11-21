@@ -11,18 +11,20 @@ import java.util.Map;
 @Service
 public class CloudinaryService {
     public static final Cloudinary cloudinary;
+
     static {
-        Map<String,Object> config=new HashMap<String,Object>();
+        Map<String, Object> config = new HashMap<String, Object>();
         config.put("cloud_name", "dvdjh1ezr");
         config.put("api_key", "485958284924162");
         config.put("api_secret", "2R45-ruN_N8xr2YiXwhf0bXhWCE");
         config.put("secure", true);
-        cloudinary=new Cloudinary(config);
+        cloudinary = new Cloudinary(config);
 
     }
-    public Map upload(MultipartFile file){
+
+    public Map upload(MultipartFile file) {
         try {
-            return cloudinary.uploader().upload(file.getBytes(),Map.of());
+            return cloudinary.uploader().upload(file.getBytes(), Map.of());
         } catch (IOException e) {
             throw new RuntimeException(e);
         }

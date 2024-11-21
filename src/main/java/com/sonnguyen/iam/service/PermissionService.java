@@ -10,10 +10,11 @@ import org.springframework.stereotype.Service;
 import java.util.Optional;
 
 @Service
-@FieldDefaults(makeFinal = true,level = AccessLevel.PRIVATE)
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 public class PermissionService {
     PermissionRepository permissionRepository;
+
     public Optional<Permission> findByName(String name) {
         return permissionRepository.findByName(name);
     }

@@ -15,7 +15,7 @@ import java.util.Date;
 @AllArgsConstructor
 @Table(name = "user_profile")
 @Builder
-public class UserProfile extends AbstractAuditEntity{
+public class UserProfile extends AbstractAuditEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;

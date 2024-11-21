@@ -11,6 +11,7 @@ public class AccountPasswordEncoder {
     public BCryptPasswordEncoder passwordEncoder() {
         return new BCryptPasswordEncoder();
     }
+
     @Bean
     public Argon2PasswordEncoder argon2PasswordEncoder() {
         return Argon2PasswordEncoder.defaultsForSpringSecurity_v5_8();

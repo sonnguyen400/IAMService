@@ -29,35 +29,39 @@ import java.util.List;
 
 @Component
 @RequiredArgsConstructor
-@FieldDefaults(makeFinal = true,level = AccessLevel.PRIVATE)
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @Slf4j
 public class JwtFilter extends OncePerRequestFilter {
     JWTUtils jwtUtils;
     ForbiddenTokenService forbiddenTokenService;
+
     @Override
-    protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response,@NotNull FilterChain filterChain) throws ServletException, IOException {
-        Claims claims= validateToken(request);
-        if(claims!=null&&!claims.getSubject().isEmpty()){
-            Collection<? extends GrantedAuthority> authorities=extractAuthorities(claims.get("scope",String.class));
-            UsernamePasswordAuthenticationToken authenticationToken=new UsernamePasswordAuthenticationToken(claims.getSubject(),null,authorities);
+    protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response, @NotNull FilterChain filterChain) throws ServletException, IOException {
+        Claims claims = validateToken(request);
+        if (claims != null && !claims.getSubject().isEmpty()) {
+            Collection<? extends GrantedAuthority> authorities = extractAuthorities(claims.get("scope", String.class));
+            UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(claims.getSubject(), null, authorities);
             SecurityContextHolder.getContext().setAuthentication(authenticationToken);
         }
-        filterChain.doFilter(request,response);
+        filterChain.doFilter(request, response);
     }
+
     private Claims validateToken(HttpServletRequest request) {
         try {
             String token = RequestUtils.extractValueFromCookie(request, AuthenticationService.authCookie);
-            if(forbiddenTokenService.existsByToken(token)) {
+            if (forbiddenTokenService.existsByToken(token)) {
                 log.info("Token exists in black list!");
                 throw new AuthenticationException("Forbidden token");
-            };
+            }
+            ;
             return jwtUtils.validateToken(token);
         } catch (Exception e) {
             return null;
         }
     }
+
     private Collection<? extends GrantedAuthority> extractAuthorities(String token) {
-        List<String> scopes= Arrays.stream(token.split(" ")).toList();
+        List<String> scopes = Arrays.stream(token.split(" ")).toList();
         return scopes.stream().map(SimpleGrantedAuthority::new).toList();
     }
 }

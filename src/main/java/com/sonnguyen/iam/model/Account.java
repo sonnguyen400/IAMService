@@ -14,17 +14,18 @@ import lombok.NoArgsConstructor;
 @Entity
 @Data
 @NoArgsConstructor
-public class Account extends AbstractAuditEntity{
+public class Account extends AbstractAuditEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     @Email
     private String email;
     @NotNull
-    @Size(min = 8,message = "Password must be at least 8 characters at length")
+    @Size(min = 8, message = "Password must be at least 8 characters at length")
     private String password;
     private Boolean isEnabled;
     private Integer consecutiveLoginFailures;
+
     @Builder
     public Account(String email, String password, Boolean isEnabled, Integer consecutiveLoginFailures) {
         this.email = email;

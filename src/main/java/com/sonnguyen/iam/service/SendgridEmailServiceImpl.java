@@ -20,23 +20,25 @@ import java.util.concurrent.CompletableFuture;
 public class SendgridEmailServiceImpl extends AbstractEmailService {
     @Value("${service.mail.sendgrid.apiKey}")
     private String apiKey;
+
     @Override
     public void sendEmail(String dest, String subject, String body) {
-        Email from=new Email(this.from);
-        CompletableFuture.runAsync(() -> {
-            Email to = new Email(dest);
-            Content content1 = new Content(MediaType.TEXT_HTML.getType(), body);
-            Mail mail = new Mail(from, subject, to, content1);
-            SendGrid sendGrid = new SendGrid(apiKey);
-            Request request = new Request();
-            try {
-                request.setMethod(Method.POST);
-                request.setEndpoint("mail/send");
-                request.setBody(mail.build());
-                Response response = sendGrid.api(request);
-            } catch (IOException ex) {
-                ex.printStackTrace();
+        Email from = new Email(this.from);
+        Email to = new Email(dest);
+        Content content1 = new Content(MediaType.TEXT_PLAIN.getType(), body);
+        Mail mail = new Mail(from, subject, to, content1);
+        SendGrid sendGrid = new SendGrid(apiKey);
+        Request request = new Request();
+        try {
+            request.setMethod(Method.POST);
+            request.setEndpoint("mail/send");
+            request.setBody(mail.build());
+            Response response = sendGrid.api(request);
+            if(response.getStatusCode() == 200) {
+                log.info("Email sent successfully");
             }
-        });
+        } catch (IOException ex) {
+            ex.printStackTrace();
+        }
     }
 }
