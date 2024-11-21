@@ -22,7 +22,7 @@ public class AuthenticationManagement {
         if(passwordEncoder.matches(password,userDetails.getPassword())){
             if(!userDetails.isEnabled()) throw new AuthenticationException("Account is disabled");
             if(!userDetails.isAccountNonLocked()) throw new AuthenticationException("Account is locked");
-            return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
+            return new UsernamePasswordAuthenticationToken(userDetails.getEmail(), null, userDetails.getAuthorities());
         }
         else throw new AuthenticationException("Invalid password");
     }

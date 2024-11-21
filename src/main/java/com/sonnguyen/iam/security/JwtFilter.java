@@ -1,6 +1,8 @@
 package com.sonnguyen.iam.security;
 
+import com.sonnguyen.iam.exception.AuthenticationException;
 import com.sonnguyen.iam.service.AuthenticationService;
+import com.sonnguyen.iam.service.ForbiddenTokenService;
 import com.sonnguyen.iam.utils.JWTUtils;
 import com.sonnguyen.iam.utils.RequestUtils;
 import io.jsonwebtoken.Claims;
@@ -12,6 +14,7 @@ import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
@@ -27,9 +30,10 @@ import java.util.List;
 @Component
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true,level = AccessLevel.PRIVATE)
+@Slf4j
 public class JwtFilter extends OncePerRequestFilter {
     JWTUtils jwtUtils;
-
+    ForbiddenTokenService forbiddenTokenService;
     @Override
     protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response,@NotNull FilterChain filterChain) throws ServletException, IOException {
         Claims claims= validateToken(request);
@@ -43,6 +47,10 @@ public class JwtFilter extends OncePerRequestFilter {
     private Claims validateToken(HttpServletRequest request) {
         try {
             String token = RequestUtils.extractValueFromCookie(request, AuthenticationService.authCookie);
+            if(forbiddenTokenService.existsByToken(token)) {
+                log.info("Token exists in black list!");
+                throw new AuthenticationException("Forbidden token");
+            };
             return jwtUtils.validateToken(token);
         } catch (Exception e) {
             return null;

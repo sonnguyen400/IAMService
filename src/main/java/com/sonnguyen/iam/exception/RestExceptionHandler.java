@@ -41,4 +41,9 @@ public class RestExceptionHandler {
     public String handleInvalidArgumentException(BadCredentialsException e) {
         return e.getMessage();
     }
+    @ExceptionHandler(AuthenticationException.class)
+    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public String handleAuthenticationException(AuthenticationException e) {
+        return e.getMessage();
+    }
 }

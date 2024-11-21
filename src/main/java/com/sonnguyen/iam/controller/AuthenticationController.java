@@ -8,6 +8,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -21,8 +22,12 @@ public class AuthenticationController {
         return authenticationService.login(accountPostVm);
     }
     @PostMapping(value = "/password/change")
+    @PreAuthorize("hasAnyAuthority('CHANGE_USER_PASSWORD') or (hasAnyAuthority('CHANGE_PASSWORD') and #userProfile.email()==authentication.principal)")
     public String changePassword(@RequestBody ChangingPasswordPostVm changingPasswordPostVm) throws Exception {
         return authenticationService.changePassword(changingPasswordPostVm);
     }
-
+    @GetMapping(value = "/logout")
+    public ResponseEntity<String> logout(HttpServletRequest request) throws Exception {
+        return authenticationService.logout(request);
+    }
 }
