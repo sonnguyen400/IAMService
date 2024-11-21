@@ -119,7 +119,20 @@
             <artifactId>cloudinary-http44</artifactId>
             <version>1.36.0</version>
         </dependency>
+
+<!--        Redis-->
+        <dependency>
+            <groupId>org.springframework.data</groupId>
+            <artifactId>spring-data-redis</artifactId>
+        </dependency>
+
+        <dependency>
+            <groupId>io.lettuce</groupId>
+            <artifactId>lettuce-core</artifactId>
+            <version>5.1.3.RELEASE</version>
+        </dependency>
     </dependencies>
+
 
     <build>
         <plugins>

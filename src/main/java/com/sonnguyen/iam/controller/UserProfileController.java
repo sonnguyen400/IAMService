@@ -8,6 +8,8 @@ import com.sonnguyen.iam.service.UserProfileService;
 import com.sonnguyen.iam.viewmodel.UserProfileGetVm;
 import com.sonnguyen.iam.viewmodel.UserProfilePostVm;
 import jakarta.validation.Valid;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -27,10 +29,13 @@ public class UserProfileController extends BaseController {
     UserProfileService userProfileService;
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyAuthority('CHANGE_USER_PROFILE') or (hasAnyAuthority('CHANGE_PROFILE') and #userProfile.email()==authentication.principal)")
-    public String createNewProfile(@RequestPart(name = "picture") MultipartFile picture,
-                                        @Valid UserProfilePostVm userProfile) {
+    public String createNewProfile(@Valid UserProfilePostVm userProfile) {
         saveActivityLog(UserActivityLog.builder().activityType(ActivityType.MODIFY_PASSWORD).build());
-        return userProfileService.saveUserProfile(userProfile, picture);
+        return userProfileService.saveUserProfile(userProfile);
+    }
+    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    public String setUploadProfilePicture(@NotNull @RequestPart(name = "picture") MultipartFile picture,@NotNull @NotBlank String email){
+        return userProfileService.setProfilePicture(email,picture);
     }
     @GetMapping(value = "/mail")
     public UserProfileGetVm findProfileByEmail(@RequestParam(required = false) String mail) {

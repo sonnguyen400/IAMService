@@ -5,6 +5,7 @@ import com.sonnguyen.iam.model.UserActivityLog;
 import com.sonnguyen.iam.service.AuthenticationService;
 import com.sonnguyen.iam.viewmodel.AccountPostVm;
 import com.sonnguyen.iam.viewmodel.ChangingPasswordPostVm;
+import com.sonnguyen.iam.viewmodel.LoginAcceptRequestVm;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -23,9 +24,13 @@ import org.springframework.web.servlet.mvc.AbstractController;
 public class AuthenticationController extends BaseController {
     AuthenticationService authenticationService;
     @PostMapping(value = "/login")
-    public ResponseEntity<String> login(@RequestBody AccountPostVm accountPostVm,HttpServletRequest request) throws Exception {
+    public ResponseEntity<String> handleLoginRequest(@RequestBody AccountPostVm accountPostVm,HttpServletRequest request) throws Exception {
         saveActivityLog(UserActivityLog.builder().activityType(ActivityType.LOGIN).email(accountPostVm.email()).build());
-        return authenticationService.login(accountPostVm);
+        return authenticationService.handleLoginRequest(accountPostVm);
+    }
+    @PostMapping(value = "/login")
+    public ResponseEntity<String> handleLoginAcceptRequest(@RequestBody LoginAcceptRequestVm loginAcceptRequestVm) throws Exception {
+        return authenticationService.handleLoginAcceptRequest(loginAcceptRequestVm);
     }
     @PostMapping(value = "/password/change")
     @PreAuthorize("hasAnyAuthority('CHANGE_USER_PASSWORD') or (hasAnyAuthority('CHANGE_PASSWORD') and #changingPasswordPostVm.email()==authentication.principal)")

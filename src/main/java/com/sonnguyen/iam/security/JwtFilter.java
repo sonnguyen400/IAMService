@@ -48,7 +48,6 @@ public class JwtFilter extends OncePerRequestFilter {
         try {
             String token = RequestUtils.extractValueFromCookie(request, AuthenticationService.authCookie);
             if(forbiddenTokenService.existsByToken(token)) {
-                log.info("Token exists in black list!");
                 throw new AuthenticationException("Forbidden token");
             };
             return jwtUtils.validateToken(token);

@@ -5,6 +5,8 @@ import com.sonnguyen.iam.utils.JWTUtils;
 import com.sonnguyen.iam.utils.RequestUtils;
 import com.sonnguyen.iam.viewmodel.AccountPostVm;
 import com.sonnguyen.iam.viewmodel.ChangingPasswordPostVm;
+import com.sonnguyen.iam.viewmodel.LoginAcceptRequestVm;
+import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -19,10 +21,12 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
+import javax.naming.AuthenticationException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.stream.Collectors;
@@ -32,38 +36,58 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 public class AuthenticationService {
     public static String authCookie = "token";
+    AbstractEmailService mailService;
     AuthenticationManagement authenticationManager;
     AccountService accountService;
+    OtpService otpService;
     ForbiddenTokenService forbiddenTokenService;
     JWTUtils jwtUtils;
-    public ResponseEntity<String> login(AccountPostVm accountPostVm) throws Exception {
+    public ResponseEntity<String> handleLoginRequest(AccountPostVm accountPostVm) throws Exception {
         Authentication authenticatedAuth=authenticationManager.authenticate(accountPostVm.email(), accountPostVm.password());
-        return handleLoginSuccess(authenticatedAuth);
+        return handleSuccessLoginRequest(authenticatedAuth);
     }
-    public ResponseEntity<String> handleLoginSuccess(Authentication authentication) throws Exception {
+    public ResponseEntity<String> handleSuccessLoginRequest(Authentication authenticatedAuth) throws Exception {
+        String otp=otpService.createAndSave(authenticatedAuth.getPrincipal().toString());
+        Map<String,Object> claims=Map.of(
+                "principal",authenticatedAuth.getPrincipal(),
+                "scope",authenticatedAuth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(" "))
+        );
+        mailService.sendEmail((String) authenticatedAuth.getPrincipal(),"OTP for validate login session",otp);
+        return ResponseEntity.ok(jwtUtils.generateToken(claims,"",Instant.now().plus(Duration.ofMinutes(3))));
+    }
+
+    public ResponseEntity<String> handleLoginAcceptRequest(LoginAcceptRequestVm loginAcceptRequestVm) throws Exception {
+        Claims claims=jwtUtils.validateToken(loginAcceptRequestVm.token());
+        String subject=claims.get("principal",String.class);
+        String scope=claims.get("scope",String.class);
+        boolean isValidOtp=otpService.verifyOtp(subject,loginAcceptRequestVm.otp());
+        if(isValidOtp)  return handleLoginSuccess(subject,scope);
+        throw new AuthenticationException("Invalid OTP");
+    }
+    public ResponseEntity<String> handleLoginSuccess(String subject,String scope) throws Exception {
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE,generateAccessCookie(authentication).toString())
+                .header(HttpHeaders.SET_COOKIE,generateAccessCookie(subject,scope).toString())
                 .body("login successfully");
     }
-    public ResponseCookie generateAccessCookie(Authentication authentication) throws Exception {
-        return ResponseCookie.from(authCookie,generateJwtAccessToken(authentication))
+    public ResponseCookie generateAccessCookie(String subject,String scope) throws Exception {
+        Map<String,Object> claims=Map.of("scope",scope);
+        String token= jwtUtils.generateToken(claims, subject, Instant.now().plus(3, ChronoUnit.HOURS));
+        return ResponseCookie.from(authCookie,token)
                 .secure(true)
                 .path("/")
                 .sameSite("None")
                 .httpOnly(true)
-                .maxAge(Duration.of(3, ChronoUnit.HOURS))
+                .maxAge(Duration.ofMinutes(5))
                 .build();
     }
-    public String generateJwtAccessToken(Authentication authentication) throws Exception {
-        String scope=authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(" "));
-        Map<String,Object> claims=Map.of("scope",scope);
-        return jwtUtils.generateToken(claims, (String) authentication.getPrincipal(), Instant.now().plus(3, ChronoUnit.HOURS));
-    }
+
+
     public String changePassword(ChangingPasswordPostVm changingPasswordPostVm){
         Authentication authentication = authenticationManager.authenticate(changingPasswordPostVm.email(), changingPasswordPostVm.oldPassword());
         if(authentication==null||!authentication.isAuthenticated()) {
             throw new BadCredentialsException("Invalid email or password");
         }
+        mailService.sendEmail(changingPasswordPostVm.email(),"Update Credentials","Your password has been changed");
         accountService.changePassword(changingPasswordPostVm.email(), changingPasswordPostVm.newPassword());
         return "Change password successfully";
     }
@@ -74,7 +98,7 @@ public class AuthenticationService {
         }
         ResponseCookie expiredCookie=ResponseCookie
                 .from(authCookie,"Expired")
-                .maxAge(Duration.of(1,ChronoUnit.SECONDS))
+                .maxAge(Duration.ofSeconds(0))
                 .build();
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE,expiredCookie.toString())

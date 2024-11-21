@@ -23,6 +23,7 @@ public class UserProfileService {
     UserProfileRepository userProfileRepository;
     AccountService accountService;
     CloudinaryService cloudinaryService;
+    AbstractEmailService emailService;
     public UserProfile findById(Long id) {
         return userProfileRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("User with id " + id + " not found"));
     }
@@ -31,18 +32,29 @@ public class UserProfileService {
         UserProfile userProfile = userProfileRepository.findByAccount_id(account.getId()).orElseThrow(()->new ResourceNotFoundException("User with id " + account.getId() + " not found"));
         return UserProfileGetVm.map(userProfile,account.getEmail());
     }
-    public String saveUserProfile(UserProfilePostVm userProfilePostVm, MultipartFile file) {
-        Account account=accountService.findByEmail(userProfilePostVm.email()).orElseThrow(()->new ResourceNotFoundException("Account with email " + userProfilePostVm.email() + " not found"));
-        UserProfile userProfile=userProfilePostVm.toEntity();
-        userProfile.setAccount_id(account.getId());
-        Optional<UserProfile> existedProfile=userProfileRepository.findByAccount_id(account.getId());
-        existedProfile.ifPresent(profile -> userProfile.setId(profile.getId()));
-        log.info("Saving user detail {}", userProfile.getId());
-        if(file!=null){
-            String picture_url=(String) cloudinaryService.upload(file).get("url");
-            userProfile.setPicture_url(picture_url);
-        }
+    public String setProfilePicture(String email,MultipartFile file) {
+        UserProfile userProfile=initUserProfile(email);
+        String picture_url=(String) cloudinaryService.upload(file).get("url");
+        userProfile.setPicture_url(picture_url);
         userProfileRepository.save(userProfile);
+        emailService.sendEmail(email,"Update profile","Your profile picture has been updated");
+        return "Set profile picture successfully";
+    }
+    public String saveUserProfile(UserProfilePostVm userProfilePostVm) {
+        UserProfile userProfile=initUserProfile(userProfilePostVm.email());
+        UserProfile newUserProfile=userProfilePostVm.toEntity();
+        newUserProfile.setAccount_id(userProfile.getAccount_id());
+        log.info("Saving user detail {}", userProfile.getId());
+        userProfileRepository.save(userProfile);
+        emailService.sendEmail(userProfilePostVm.email(),"Update profile","Your profile has been updated");
         return "Update profile successfully";
+    }
+    public UserProfile initUserProfile(String email) {
+        Account account=accountService.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("Account with email " + userProfilePostVm.email() + " not found"));
+        Optional<UserProfile> userProfile= userProfileRepository.findByAccount_id(account.getId());
+        return userProfile.orElseGet(() -> userProfileRepository.save(UserProfile
+                .builder()
+                .account_id(account.getId())
+                .build()));
     }
 }
