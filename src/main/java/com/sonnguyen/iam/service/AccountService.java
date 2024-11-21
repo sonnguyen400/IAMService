@@ -7,16 +7,12 @@ import com.sonnguyen.iam.repository.AccountRepository;
 import com.sonnguyen.iam.utils.JWTUtils;
 import com.sonnguyen.iam.viewmodel.AccountPostVm;
 import jakarta.transaction.Transactional;
-import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
-import org.springframework.security.crypto.bcrypt.BCrypt;
 import org.springframework.stereotype.Service;
-import org.springframework.validation.annotation.Validated;
 
 import java.util.Date;
 import java.util.Optional;

@@ -1,5 +1,6 @@
 package com.sonnguyen.iam.service;
 
+import com.sonnguyen.iam.security.AuthenticationManagement;
 import com.sonnguyen.iam.utils.JWTUtils;
 import com.sonnguyen.iam.viewmodel.AccountPostVm;
 import lombok.AccessLevel;
@@ -8,9 +9,6 @@ import lombok.experimental.FieldDefaults;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.BadCredentialsException;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Service;
 
@@ -19,14 +17,10 @@ import org.springframework.stereotype.Service;
 @RequiredArgsConstructor
 public class AuthenticationService {
     public static String authCookie = "token";
-    AuthenticationManager authenticationManager;
+    AuthenticationManagement authenticationManager;
     JWTUtils jwtUtils;
     public ResponseEntity<String> login(AccountPostVm accountPostVm) {
-        Authentication authentication = new UsernamePasswordAuthenticationToken(accountPostVm.email(), accountPostVm.password());
-        Authentication authenticatedAuth=authenticationManager.authenticate(authentication);
-        if(authenticatedAuth==null||!authenticatedAuth.isAuthenticated()) {
-            throw new BadCredentialsException("Invalid email or password");
-        }
+        Authentication authenticatedAuth=authenticationManager.authenticate(accountPostVm.email(), accountPostVm.password());
         return handleLoginSuccess(authenticatedAuth);
     }
     public ResponseEntity<String> handleLoginSuccess(Authentication authentication) {
