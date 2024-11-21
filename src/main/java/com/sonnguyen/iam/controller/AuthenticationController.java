@@ -22,7 +22,7 @@ public class AuthenticationController {
         return authenticationService.login(accountPostVm);
     }
     @PostMapping(value = "/password/change")
-    @PreAuthorize("hasAnyAuthority('CHANGE_USER_PASSWORD') or (hasAnyAuthority('CHANGE_PASSWORD') and #userProfile.email()==authentication.principal)")
+    @PreAuthorize("hasAnyAuthority('CHANGE_USER_PASSWORD') or (hasAnyAuthority('CHANGE_PASSWORD') and #changingPasswordPostVm.email()==authentication.principal)")
     public String changePassword(@RequestBody ChangingPasswordPostVm changingPasswordPostVm) throws Exception {
         return authenticationService.changePassword(changingPasswordPostVm);
     }

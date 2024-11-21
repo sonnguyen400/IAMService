@@ -23,7 +23,7 @@ public class DatabaseConfig {
             if (auth == null) {
                 return Optional.of("");
             }
-            return Optional.of(auth.getName());
+            return Optional.of(auth.getPrincipal().toString());
         };
     }
 }

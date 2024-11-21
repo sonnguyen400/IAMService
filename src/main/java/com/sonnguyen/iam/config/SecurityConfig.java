@@ -28,8 +28,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @EnableMethodSecurity
 public class SecurityConfig {
     JwtFilter jwtFilter;
-    Argon2PasswordEncoder argon2PasswordEncoder;
-    UserDetailsService userDetailsService;
     @Bean
     public SecurityFilterChain configSecurity(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(request -> {
