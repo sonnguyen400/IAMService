@@ -1,5 +1,7 @@
 package com.sonnguyen.iam.controller;
 
+import com.sonnguyen.iam.constant.ActivityType;
+import com.sonnguyen.iam.model.UserActivityLog;
 import com.sonnguyen.iam.model.UserDetailsImpl;
 import com.sonnguyen.iam.model.UserProfile;
 import com.sonnguyen.iam.service.UserProfileService;
@@ -21,12 +23,13 @@ import java.util.List;
 @RequestMapping("/api/v1/profile")
 @FieldDefaults(makeFinal = true,level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
-public class UserProfileController {
+public class UserProfileController extends BaseController {
     UserProfileService userProfileService;
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyAuthority('CHANGE_USER_PROFILE') or (hasAnyAuthority('CHANGE_PROFILE') and #userProfile.email()==authentication.principal)")
     public String createNewProfile(@RequestPart(name = "picture") MultipartFile picture,
                                         @Valid UserProfilePostVm userProfile) {
+        saveActivityLog(UserActivityLog.builder().activityType(ActivityType.MODIFY_PASSWORD).build());
         return userProfileService.saveUserProfile(userProfile, picture);
     }
     @GetMapping(value = "/mail")
