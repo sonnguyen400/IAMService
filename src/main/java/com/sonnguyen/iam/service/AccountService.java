@@ -4,6 +4,7 @@ import com.sonnguyen.iam.exception.DuplicatedException;
 import com.sonnguyen.iam.exception.InvalidArgumentException;
 import com.sonnguyen.iam.exception.ResourceNotFoundException;
 import com.sonnguyen.iam.model.Account;
+import com.sonnguyen.iam.model.Permission;
 import com.sonnguyen.iam.repository.AccountRepository;
 import com.sonnguyen.iam.utils.JWTUtils;
 import com.sonnguyen.iam.viewmodel.AccountGetVm;
@@ -27,6 +28,7 @@ public class AccountService {
     AccountRepository accountRepository;
     Argon2PasswordEncoder argon2PasswordEncoder;
     AbstractEmailService emailService;
+    PermissionService permissionService;
     JWTUtils jwtUtils;
     public Optional<Account> findByEmail(String email) {
         return accountRepository.findByEmail(email);
@@ -37,8 +39,8 @@ public class AccountService {
                 .map(AccountGetVm::fromAccount)
                 .orElseThrow(()->new ResourceNotFoundException("Resource not found"));
     }
-    public AccountGetVm registerNewAccount(AccountPostVm accountPostVm) {
-        findByEmail(accountPostVm.email())
+    public AccountGetVm createNewAccount(AccountPostVm accountPostVm) {
+        accountRepository.findByEmail(accountPostVm.email())
                 .ifPresent((duplicatedAccount) -> {
                     throw new DuplicatedException(String.format("Duplicated email %s", duplicatedAccount.getEmail()));
                 });
@@ -49,13 +51,13 @@ public class AccountService {
                 .password(argon2PasswordEncoder.encode(accountPostVm.password()))
                 .consecutiveLoginFailures(0)
                 .build();
-        return AccountGetVm.fromAccount( accountRepository.save(initialAccount));
+        return AccountGetVm.fromAccount(accountRepository.save(initialAccount));
     }
     public void sendActiveAccountEmail(String email) {
         accountRepository.findByEmail(email).orElseThrow(()->new InvalidArgumentException(String.format("Email %s not found", email)));
         String activeCode=jwtUtils.generateToken(email,(new Date().getTime()+1000*60*5));
         log.info("Send code to email: {}", email);// Verification Code expired in 5 minutes
-        log.info("Email content: http://localhost:8080/api/v1/account/active?code={}", activeCode);
+        log.debug("Email content: http://localhost:8080/api/v1/account/active?code={}", activeCode);
         emailService.sendEmail(email,"Active account","http://localhost:8080/api/v1/account/active?code="+activeCode);
     }
     @Transactional
@@ -64,7 +66,7 @@ public class AccountService {
             throw new InvalidArgumentException(String.format("Activation code %s is expired", activeCode));
         }
         String extractedEmail = jwtUtils.extractSubject(activeCode);
-        log.info("Extracted email: "+extractedEmail);
+        log.info("Extracted email: {}", extractedEmail);
         if(!accountRepository.existsByEmail(extractedEmail)) {
             throw new InvalidArgumentException("Invalid activation code");
         }

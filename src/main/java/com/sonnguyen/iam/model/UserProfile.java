@@ -2,6 +2,7 @@ package com.sonnguyen.iam.model;
 
 import com.fasterxml.jackson.annotation.JsonBackReference;
 import jakarta.persistence.*;
+import jakarta.validation.constraints.NotNull;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -15,10 +16,8 @@ public class UserProfile extends AbstractAuditEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
-    @JoinColumn(name = "account_id")
-    @JsonBackReference
-    private Account account;
+    @NotNull(message = "User's profile must be connected to an account")
+    private Long account_id;
     private String firstname;
     private String lastname;
     private Date dateOfBirth;

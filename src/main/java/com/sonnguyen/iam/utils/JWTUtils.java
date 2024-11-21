@@ -28,7 +28,7 @@ public class JWTUtils {
                 .signWith(getSignKey()).compact();
     }
     public String generateToken(Map<String,Object> map,String subject, Long expirationTimeMillis) {
-        return Jwts.builder().setSubject(subject).setClaims(map).setIssuedAt(new Date()).setExpiration(new Date(expirationTimeMillis))
+        return Jwts.builder().setSubject(subject).addClaims(map).setIssuedAt(new Date()).setExpiration(new Date(expirationTimeMillis))
                 .signWith(getSignKey()).compact();
     }
     // Giải mã token và lấy thông tin người dùng

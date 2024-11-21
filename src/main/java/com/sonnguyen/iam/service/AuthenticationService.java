@@ -2,6 +2,7 @@ package com.sonnguyen.iam.service;
 
 import com.sonnguyen.iam.utils.JWTUtils;
 import com.sonnguyen.iam.viewmodel.AccountPostVm;
+import io.jsonwebtoken.Claims;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -12,7 +13,10 @@ import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
+import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
+
+import java.util.*;
 
 @Service
 @FieldDefaults(makeFinal = true,level = AccessLevel.PRIVATE)
@@ -31,16 +35,21 @@ public class AuthenticationService {
     }
     public ResponseEntity<String> handleLoginSuccess(Authentication authentication) {
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE,generateAccessCookie(authentication.getName()).toString())
+                .header(HttpHeaders.SET_COOKIE,generateAccessCookie(authentication).toString())
                 .body("login successfully");
     }
-    public ResponseCookie generateAccessCookie(String subject){
-        return ResponseCookie.from(authCookie,jwtUtils.generateToken(subject))
+    public ResponseCookie generateAccessCookie(Authentication authentication){
+        return ResponseCookie.from(authCookie,generateJwtAccessToken(authentication))
                 .secure(true)
                 .path("/")
                 .sameSite("None")
                 .httpOnly(true)
                 .maxAge(60*60*3)
                 .build();
+    }
+    public String generateJwtAccessToken(Authentication authentication){
+        List<String> authoritiesName=authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
+        Map<String,Object> claims=Map.of("authorities",authoritiesName,"principal",authentication.getPrincipal());
+        return jwtUtils.generateToken(claims,authentication.getName(),(new Date().getTime()+1000*60*60*3));
     }
 }

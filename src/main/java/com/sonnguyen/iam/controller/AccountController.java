@@ -1,6 +1,7 @@
 package com.sonnguyen.iam.controller;
 
 import com.sonnguyen.iam.service.AccountService;
+import com.sonnguyen.iam.service.UserAccountService;
 import com.sonnguyen.iam.viewmodel.AccountGetVm;
 import com.sonnguyen.iam.viewmodel.AccountPostVm;
 import jakarta.validation.Valid;
@@ -15,11 +16,12 @@ import org.springframework.web.bind.annotation.*;
 @RequiredArgsConstructor
 public class AccountController {
     AccountService accountService;
+    UserAccountService userAccountService;
     @PostMapping(value = "/register")
     public AccountGetVm registerNewAccount(
              @Valid @RequestBody AccountPostVm account
     ) {
-        return accountService.registerNewAccount(account);
+        return userAccountService.registerNewAccount(account);
     }
     @GetMapping(value = "/verify")
     public String verifyAccount(@RequestParam String email){

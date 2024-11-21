@@ -1,6 +1,7 @@
 package com.sonnguyen.iam.service;
 
 import com.sonnguyen.iam.model.Account;
+import com.sonnguyen.iam.model.PermissionDetail;
 import com.sonnguyen.iam.model.UserDetailsImpl;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -10,17 +11,24 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
+import java.util.List;
+
 @Service
 @FieldDefaults(makeFinal = true,level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 public class UserDetailsServiceImpl implements UserDetailsService {
     AccountService accountService;
-
+    PermissionDetailService permissionDetailService;
     @Override
     public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
         return accountService
                 .findByEmail(email)
-                .map(UserDetailsImpl::new)
+                .map((account -> {
+                    UserDetailsImpl userDetails = new UserDetailsImpl(account);
+                    List<PermissionDetail> permissionDetails=permissionDetailService.findAllByAccountId(account.getId());
+                    userDetails.mapAuthority(permissionDetails);
+                    return userDetails;
+                }))
                 .orElseThrow(()->new UsernameNotFoundException(String.format("Can't not find user with email %s",email)));
     }
 }

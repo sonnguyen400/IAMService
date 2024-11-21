@@ -24,12 +24,7 @@ public class UserProfileService {
         return userProfileRepository.findById(id).orElseThrow(()->new ResourceNotFoundException("User with id " + id + " not found"));
     }
     public UserProfile saveUserProfile(UserProfile userProfile, MultipartFile file) {
-        Long accountid=0L;
-        if(userProfile.getAccount()!=null&&userProfile.getAccount().getId()!=null){
-            accountid = userProfile.getAccount().getId();
-        }else throw new InvalidArgumentException("Account id is required");
-
-        Optional<UserProfile> existedProfile=userProfileRepository.findByAccount_id(accountid);
+        Optional<UserProfile> existedProfile=userProfileRepository.findByAccount_id(userProfile.getId());
         existedProfile.ifPresent(profile -> userProfile.setId(profile.getId()));
 
         if(file!=null){
