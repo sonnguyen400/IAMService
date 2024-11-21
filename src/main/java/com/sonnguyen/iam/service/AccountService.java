@@ -8,6 +8,7 @@ import com.sonnguyen.iam.repository.AccountRepository;
 import com.sonnguyen.iam.utils.JWTUtils;
 import com.sonnguyen.iam.viewmodel.AccountGetVm;
 import com.sonnguyen.iam.viewmodel.AccountPostVm;
+import com.sonnguyen.iam.viewmodel.ChangingPasswordPostVm;
 import jakarta.transaction.Transactional;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
@@ -73,6 +74,12 @@ public class AccountService {
     }
     public void updateAccount(Account account) {
 
+    }
+
+    @Transactional
+    public void changePassword(String email,String plainTextNewPassword) {
+        String encodedPassword = argon2PasswordEncoder.encode(plainTextNewPassword);
+        accountRepository.changePassword(email,encodedPassword);
     }
 
 }

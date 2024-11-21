@@ -2,6 +2,8 @@ package com.sonnguyen.iam.controller;
 
 import com.sonnguyen.iam.service.AuthenticationService;
 import com.sonnguyen.iam.viewmodel.AccountPostVm;
+import com.sonnguyen.iam.viewmodel.ChangingPasswordPostVm;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -22,4 +24,8 @@ public class AuthenticationController {
         return authenticationService.login(accountPostVm);
     }
 
+    @PostMapping(value = "/password/change")
+    public String changePassword(@RequestBody ChangingPasswordPostVm changingPasswordPostVm){
+        return authenticationService.changePassword(changingPasswordPostVm);
+    }
 }

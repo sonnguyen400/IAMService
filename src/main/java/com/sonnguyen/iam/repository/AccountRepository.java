@@ -12,7 +12,10 @@ import java.util.Optional;
 public interface AccountRepository extends JpaRepository<Account, Long> {
     Optional<Account> findByEmail(String email);
     boolean existsByEmail(String email);
-    @Query("update Account a set a.isEnabled=true where a.email=?1")
     @Modifying
+    @Query("update Account a set a.isEnabled=true where a.email=?1")
     void enableAccountByEmail(String email);
+    @Modifying
+    @Query("update Account a set a.password=?2 where a.email=?1")
+    void changePassword( String email,String newPassword);
 }

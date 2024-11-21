@@ -2,6 +2,7 @@ package com.sonnguyen.iam.service;
 
 import com.sonnguyen.iam.utils.JWTUtils;
 import com.sonnguyen.iam.viewmodel.AccountPostVm;
+import com.sonnguyen.iam.viewmodel.ChangingPasswordPostVm;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -25,6 +26,7 @@ import java.util.Map;
 public class AuthenticationService {
     public static String authCookie = "token";
     AuthenticationManager authenticationManager;
+    AccountService accountService;
     JWTUtils jwtUtils;
     public ResponseEntity<String> login(AccountPostVm accountPostVm) {
         Authentication authentication = new UsernamePasswordAuthenticationToken(accountPostVm.email(), accountPostVm.password());
@@ -52,5 +54,14 @@ public class AuthenticationService {
         List<String> authoritiesName=authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
         Map<String,Object> claims=Map.of("authorities",authoritiesName,"principal",authentication.getPrincipal());
         return jwtUtils.generateToken(claims,authentication.getName(),(new Date().getTime()+1000*60*60*3));
+    }
+    public String changePassword(ChangingPasswordPostVm changingPasswordPostVm){
+        Authentication authentication = new UsernamePasswordAuthenticationToken(changingPasswordPostVm.email(), changingPasswordPostVm.oldPassword());
+        Authentication authenticatedAuth=authenticationManager.authenticate(authentication);
+        if(authenticatedAuth==null||!authenticatedAuth.isAuthenticated()) {
+            throw new BadCredentialsException("Invalid email or password");
+        }
+        accountService.changePassword(changingPasswordPostVm.email(), changingPasswordPostVm.newPassword());
+        return "Change password successfully";
     }
 }
