@@ -27,7 +27,6 @@ public class RestExceptionHandler {
     public Object handleMethodArgumentException(MethodArgumentNotValidException e) {
         return Arrays.stream(e.getDetailMessageArguments());
     }
-
     @ExceptionHandler(DuplicatedException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public String handleDuplicatedException(DuplicatedException e) {
