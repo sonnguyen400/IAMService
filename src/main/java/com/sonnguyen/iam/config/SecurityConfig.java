@@ -24,8 +24,6 @@ import org.springframework.security.web.authentication.UsernamePasswordAuthentic
 @RequiredArgsConstructor
 public class SecurityConfig {
     JwtFilter jwtFilter;
-    Argon2PasswordEncoder argon2PasswordEncoder;
-    UserDetailsService userDetailsService;
     @Bean
     public SecurityFilterChain configSecurity(HttpSecurity http) throws Exception {
         http.authorizeHttpRequests(request -> {
@@ -38,16 +36,4 @@ public class SecurityConfig {
         return http.build();
     }
 
-    @Bean
-    public AuthenticationProvider authenticationProvider(){
-        final DaoAuthenticationProvider authenticationProvider=new DaoAuthenticationProvider();
-        authenticationProvider.setUserDetailsService(userDetailsService);
-        authenticationProvider.setPasswordEncoder(argon2PasswordEncoder);
-        return authenticationProvider;
-    }
-
-    @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration configuration) throws Exception {
-        return configuration.getAuthenticationManager();
-    }
 }

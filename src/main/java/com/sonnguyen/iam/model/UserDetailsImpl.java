@@ -35,6 +35,6 @@ public class UserDetailsImpl {
     }
 
     public boolean isAccountNonLocked() {
-        return consecutiveLoginFailures>=3;
+        return consecutiveLoginFailures<3;
     }
 }
