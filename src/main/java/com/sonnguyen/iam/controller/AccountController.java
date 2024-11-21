@@ -24,12 +24,12 @@ public class AccountController {
         return userAccountService.registerNewAccount(account);
     }
     @GetMapping(value = "/verify")
-    public String verifyAccount(@RequestParam String email){
+    public String verifyAccount(@RequestParam String email) throws Exception {
         accountService.sendActiveAccountEmail(email);
         return String.format("Send activation code to email %s",email);
     }
     @GetMapping(value = "/active")
-    public String activeAccountByActiveCode(@RequestParam String code){
+    public String activeAccountByActiveCode(@RequestParam String code) throws Exception {
         accountService.verifyAccountByActiveCode(code);
         return "Active account successfully";
     }

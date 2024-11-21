@@ -2,6 +2,8 @@ package com.sonnguyen.iam.model;
 
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotNull;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
@@ -10,7 +12,9 @@ import java.util.Date;
 @Entity
 @Data
 @NoArgsConstructor
+@AllArgsConstructor
 @Table(name = "user_profile")
+@Builder
 public class UserProfile extends AbstractAuditEntity{
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
@@ -21,5 +25,7 @@ public class UserProfile extends AbstractAuditEntity{
     private String lastname;
     private Date dateOfBirth;
     private String gender;
+    private String address;
+    private String phoneNumber;
     private String picture_url;
 }

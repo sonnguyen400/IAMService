@@ -10,7 +10,7 @@ import java.util.Collection;
 import java.util.List;
 @Getter
 @Setter
-public class UserDetailsImpl implements UserDetails {
+public class UserDetailsImpl {
     private Long id;
     private String email;
     private String password;
@@ -36,26 +36,22 @@ public class UserDetailsImpl implements UserDetails {
     public void mapAuthority(List<PermissionDetail> authorities) {
         this.authorities=authorities.stream().map((authority_)->new SimpleGrantedAuthority(authority_.getName())).toList();
     }
-    @Override
     public boolean isEnabled() {
         return isEnabled;
     }
 
-    @Override
     public Collection<? extends GrantedAuthority> getAuthorities() {
         return authorities;
     }
-    @Override
+
     public String getPassword() {
         return password;
     }
 
-    @Override
     public String getUsername() {
         return email;
     }
 
-    @Override
     public boolean isAccountNonLocked() {
         return consecutiveLoginFailures<3;
     }

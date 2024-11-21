@@ -1,5 +1,6 @@
 package com.sonnguyen.iam.service;
 
+import com.sonnguyen.iam.security.AuthenticationManagement;
 import com.sonnguyen.iam.utils.JWTUtils;
 import com.sonnguyen.iam.viewmodel.AccountPostVm;
 import com.sonnguyen.iam.viewmodel.ChangingPasswordPostVm;
@@ -16,32 +17,31 @@ import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.List;
 import java.util.Map;
+import java.util.stream.Collectors;
 
 @Service
 @FieldDefaults(makeFinal = true,level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 public class AuthenticationService {
     public static String authCookie = "token";
-    AuthenticationManager authenticationManager;
+    AuthenticationManagement authenticationManager;
     AccountService accountService;
     JWTUtils jwtUtils;
-    public ResponseEntity<String> login(AccountPostVm accountPostVm) {
-        Authentication authentication = new UsernamePasswordAuthenticationToken(accountPostVm.email(), accountPostVm.password());
-        Authentication authenticatedAuth=authenticationManager.authenticate(authentication);
-        if(authenticatedAuth==null||!authenticatedAuth.isAuthenticated()) {
-            throw new BadCredentialsException("Invalid email or password");
-        }
+    public ResponseEntity<String> login(AccountPostVm accountPostVm) throws Exception {
+        Authentication authenticatedAuth=authenticationManager.authenticate(accountPostVm.email(), accountPostVm.password());
         return handleLoginSuccess(authenticatedAuth);
     }
-    public ResponseEntity<String> handleLoginSuccess(Authentication authentication) {
+    public ResponseEntity<String> handleLoginSuccess(Authentication authentication) throws Exception {
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE,generateAccessCookie(authentication).toString())
                 .body("login successfully");
     }
-    public ResponseCookie generateAccessCookie(Authentication authentication){
+    public ResponseCookie generateAccessCookie(Authentication authentication) throws Exception {
         return ResponseCookie.from(authCookie,generateJwtAccessToken(authentication))
                 .secure(true)
                 .path("/")
@@ -50,15 +50,14 @@ public class AuthenticationService {
                 .maxAge(60*60*3)
                 .build();
     }
-    public String generateJwtAccessToken(Authentication authentication){
-        List<String> authoritiesName=authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).toList();
-        Map<String,Object> claims=Map.of("authorities",authoritiesName,"principal",authentication.getPrincipal());
-        return jwtUtils.generateToken(claims,authentication.getName(),(new Date().getTime()+1000*60*60*3));
+    public String generateJwtAccessToken(Authentication authentication) throws Exception {
+        String scope=authentication.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(" "));
+        Map<String,Object> claims=Map.of("scope",scope);
+        return jwtUtils.generateToken(claims,authentication.getName(), Instant.now().plus(3, ChronoUnit.HOURS));
     }
     public String changePassword(ChangingPasswordPostVm changingPasswordPostVm){
-        Authentication authentication = new UsernamePasswordAuthenticationToken(changingPasswordPostVm.email(), changingPasswordPostVm.oldPassword());
-        Authentication authenticatedAuth=authenticationManager.authenticate(authentication);
-        if(authenticatedAuth==null||!authenticatedAuth.isAuthenticated()) {
+        Authentication authentication = authenticationManager.authenticate(changingPasswordPostVm.email(), changingPasswordPostVm.oldPassword());
+        if(authentication==null||!authentication.isAuthenticated()) {
             throw new BadCredentialsException("Invalid email or password");
         }
         accountService.changePassword(changingPasswordPostVm.email(), changingPasswordPostVm.newPassword());

@@ -17,6 +17,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.security.crypto.argon2.Argon2PasswordEncoder;
 import org.springframework.stereotype.Service;
 
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
 import java.util.Optional;
 
@@ -53,19 +55,17 @@ public class AccountService {
                 .build();
         return AccountGetVm.fromAccount(accountRepository.save(initialAccount));
     }
-    public void sendActiveAccountEmail(String email) {
+    public void sendActiveAccountEmail(String email) throws Exception {
         accountRepository.findByEmail(email).orElseThrow(()->new InvalidArgumentException(String.format("Email %s not found", email)));
-        String activeCode=jwtUtils.generateToken(email,(new Date().getTime()+1000*60*5));
+        String activeCode=jwtUtils.generateToken(email, Instant.now().plus(3, ChronoUnit.MINUTES));
         log.info("Send code to email: {}", email);// Verification Code expired in 5 minutes
-        log.debug("Email content: http://localhost:8080/api/v1/account/active?code={}", activeCode);
+        log.info("Email content: http://localhost:8080/api/v1/account/active?code={}", activeCode);
         emailService.sendEmail(email,"Active account","http://localhost:8080/api/v1/account/active?code="+activeCode);
     }
     @Transactional
-    public void verifyAccountByActiveCode(String activeCode) {
-        if(jwtUtils.isTokenExpired(activeCode)) {
-            throw new InvalidArgumentException(String.format("Activation code %s is expired", activeCode));
-        }
-        String extractedEmail = jwtUtils.extractSubject(activeCode);
+    public void verifyAccountByActiveCode(String activeCode) throws Exception {
+
+        String extractedEmail = jwtUtils.validateToken(activeCode).getSubject();
         log.info("Extracted email: {}", extractedEmail);
         if(!accountRepository.existsByEmail(extractedEmail)) {
             throw new InvalidArgumentException("Invalid activation code");

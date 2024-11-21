@@ -15,11 +15,10 @@ import java.util.List;
 @Service
 @FieldDefaults(makeFinal = true,level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
-public class UserDetailsServiceImpl implements UserDetailsService {
+public class UserDetailsServiceImpl {
     AccountService accountService;
     PermissionDetailService permissionDetailService;
-    @Override
-    public UserDetails loadUserByUsername(String email) throws UsernameNotFoundException {
+    public UserDetailsImpl loadUserByUsername(String email) throws UsernameNotFoundException {
         return accountService
                 .findByEmail(email)
                 .map((account -> {

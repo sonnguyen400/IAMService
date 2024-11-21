@@ -2,49 +2,42 @@ package com.sonnguyen.iam.utils;
 
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.security.Keys;
+import io.jsonwebtoken.SignatureAlgorithm;
 import org.springframework.stereotype.Component;
 
-import javax.crypto.SecretKey;
+import java.security.PrivateKey;
+import java.security.PublicKey;
+import java.time.Instant;
+import java.time.temporal.ChronoUnit;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Map;
 
 @Component
 public class JWTUtils {
-    private String secretKey = "fsigiwfysgiwyfgaiygiaygfdiyagddadad"; // Tạo token
+    private final RSAKeyUtil rsaKeyUtil;
 
-
-    private SecretKey getSignKey(){
-        return Keys.hmacShaKeyFor(secretKey.getBytes());
-    }
-    public String generateToken(String subject) {
-        return Jwts.builder().setSubject(subject).setIssuedAt(new Date()).setExpiration(new Date(System.currentTimeMillis() + 1000 * 60 * 60 * 10))// 10 giờ
-                .signWith(getSignKey()).compact();
-    }
-    public String generateToken(String subject, Long expirationTimeMillis) {
-        return Jwts.builder().setSubject(subject).setIssuedAt(new Date()).setExpiration(new Date(expirationTimeMillis))
-                .signWith(getSignKey()).compact();
-    }
-    public String generateToken(Map<String,Object> map,String subject, Long expirationTimeMillis) {
-        return Jwts.builder().setSubject(subject).addClaims(map).setIssuedAt(new Date()).setExpiration(new Date(expirationTimeMillis))
-                .signWith(getSignKey()).compact();
-    }
-    // Giải mã token và lấy thông tin người dùng
-    public Claims extractClaims(String token) {
-        return Jwts.parserBuilder().setSigningKey(getSignKey()).build().parseClaimsJws(token).getBody();
-    }
-    // Lấy subject từ token
-    public String extractSubject(String token) {
-        return extractClaims(token).getSubject();
+    public JWTUtils(RSAKeyUtil rsaKeyUtil) {
+        this.rsaKeyUtil = rsaKeyUtil;
     }
 
-    // Kiểm tra xem token có hết hạn không
-    public boolean isTokenExpired(String token) {
-        return extractClaims(token).getExpiration().before(new Date());
+    public String generateToken(String username) throws Exception {
+        return generateToken(username,Instant.now().plus(3, ChronoUnit.HOURS));
     }
-
-    // Xác thực token
-    public boolean validateToken(String token, String subject) {
-        return (subject.equals(extractSubject(token)) && !isTokenExpired(token));
+    public String generateToken( String subject, Instant expiration) throws Exception {
+        return generateToken(new HashMap<>(),subject,expiration);
+    }
+    public String generateToken(Map<String,Object> claims, String subject, Instant expiration) throws Exception {
+        PrivateKey privateKey = rsaKeyUtil.getPrivateKey();
+        return Jwts.builder()
+                .setSubject(subject)
+                .addClaims(claims)
+                .setIssuedAt(new Date()).setExpiration(Date.from(expiration)) // 1 giờ
+                .signWith(privateKey, SignatureAlgorithm.RS256).compact();
+    }
+    public Claims validateToken(String token) throws Exception {
+        PublicKey publicKey = rsaKeyUtil.getPublicKey();
+        return Jwts.parserBuilder().setSigningKey(publicKey).build().parseClaimsJws(token)
+                .getBody();
     }
 }

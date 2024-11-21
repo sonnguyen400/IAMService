@@ -8,10 +8,7 @@ import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.http.ResponseEntity;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -20,12 +17,12 @@ import org.springframework.web.bind.annotation.RestController;
 public class AuthenticationController {
     AuthenticationService authenticationService;
     @PostMapping(value = "/login")
-    public ResponseEntity<String> login(@RequestBody AccountPostVm accountPostVm){
+    public ResponseEntity<String> login(@RequestBody AccountPostVm accountPostVm) throws Exception {
         return authenticationService.login(accountPostVm);
     }
-
     @PostMapping(value = "/password/change")
-    public String changePassword(@RequestBody ChangingPasswordPostVm changingPasswordPostVm){
+    public String changePassword(@RequestBody ChangingPasswordPostVm changingPasswordPostVm) throws Exception {
         return authenticationService.changePassword(changingPasswordPostVm);
     }
+
 }

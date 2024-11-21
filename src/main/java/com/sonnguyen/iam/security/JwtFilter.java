@@ -1,7 +1,7 @@
 package com.sonnguyen.iam.security;
 
-import com.sonnguyen.iam.model.UserDetailsImpl;
 import com.sonnguyen.iam.service.AuthenticationService;
+import com.sonnguyen.iam.utils.JWTUtils;
 import com.sonnguyen.iam.utils.RequestUtils;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.FilterChain;
@@ -20,31 +20,36 @@ import org.springframework.stereotype.Component;
 import org.springframework.web.filter.OncePerRequestFilter;
 
 import java.io.IOException;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.List;
-import java.util.Map;
 
 @Component
 @RequiredArgsConstructor
 @FieldDefaults(makeFinal = true,level = AccessLevel.PRIVATE)
 public class JwtFilter extends OncePerRequestFilter {
-    RequestUtils requestUtils;
+    JWTUtils jwtUtils;
+
     @Override
     protected void doFilterInternal(@NotNull HttpServletRequest request, @NotNull HttpServletResponse response,@NotNull FilterChain filterChain) throws ServletException, IOException {
-        Claims claims= requestUtils.extractJwtClaimFromCookie(request, AuthenticationService.authCookie);
-
-        if(claims!=null&&claims.getSubject()!=null&& !claims.getSubject().isEmpty()){
-            List<? extends GrantedAuthority> authorities = mapAuthorities((List<String>)claims.get("authorities", Collection.class));
-            UserDetailsImpl userDetails=mapPrincipal(claims.get("principal",Map.class),authorities);
-            UsernamePasswordAuthenticationToken authentication=new UsernamePasswordAuthenticationToken(userDetails,null, authorities);
-            SecurityContextHolder.getContext().setAuthentication(authentication);
+        Claims claims= validateToken(request);
+        if(claims!=null&&!claims.getSubject().isEmpty()){
+            Collection<? extends GrantedAuthority> authorities=extractAuthorities(claims.get("scope",String.class));
+            UsernamePasswordAuthenticationToken authenticationToken=new UsernamePasswordAuthenticationToken(claims.getSubject(),null,authorities);
+            SecurityContextHolder.getContext().setAuthentication(authenticationToken);
         }
         filterChain.doFilter(request,response);
     }
-    private static List<? extends  GrantedAuthority> mapAuthorities(Collection<String> list){
-        return list.stream().map(SimpleGrantedAuthority::new).toList();
+    private Claims validateToken(HttpServletRequest request) {
+        try {
+            String token = RequestUtils.extractValueFromCookie(request, AuthenticationService.authCookie);
+            return jwtUtils.validateToken(token);
+        } catch (Exception e) {
+            return null;
+        }
     }
-    private static UserDetailsImpl mapPrincipal(Map<String,Object> map,  List<? extends GrantedAuthority>  authorities){
-        return new UserDetailsImpl(((Integer)map.get("id")).longValue(),(String)map.get("email"),(Integer) map.get("consecutiveLoginFailures"), (boolean)map.get("isEnabled"),authorities);
+    private Collection<? extends GrantedAuthority> extractAuthorities(String token) {
+        List<String> scopes= Arrays.stream(token.split(" ")).toList();
+        return scopes.stream().map(SimpleGrantedAuthority::new).toList();
     }
 }
