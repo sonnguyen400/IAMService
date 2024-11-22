@@ -7,6 +7,9 @@ import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
 import org.springframework.stereotype.Service;
 
+import java.util.Arrays;
+import java.util.List;
+
 @Service
 @FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
@@ -21,5 +24,9 @@ public class ForbiddenTokenService {
         ForbiddenToken forbiddenToken = new ForbiddenToken();
         forbiddenToken.setToken(token);
         forbiddenTokenRepository.save(forbiddenToken);
+    }
+    public void saveAll(String ...token) {
+        List<ForbiddenToken> forbiddenTokens = Arrays.stream(token).map(ForbiddenToken::new).toList();
+        forbiddenTokenRepository.saveAll(forbiddenTokens);
     }
 }

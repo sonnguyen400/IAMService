@@ -3,6 +3,7 @@ package com.sonnguyen.iam.service;
 import com.sonnguyen.iam.constant.ActivityType;
 import com.sonnguyen.iam.exception.ResourceNotFoundException;
 import com.sonnguyen.iam.model.UserActivityLog;
+import com.sonnguyen.iam.model.UserDetailsImpl;
 import com.sonnguyen.iam.security.AuthenticationManagement;
 import com.sonnguyen.iam.utils.*;
 import com.sonnguyen.iam.viewmodel.AccountPostVm;
@@ -21,12 +22,15 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.GrantedAuthority;
+import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.stereotype.Service;
 
 import javax.naming.AuthenticationException;
 import java.time.Duration;
 import java.time.Instant;
 import java.time.temporal.ChronoUnit;
+import java.util.Collection;
+import java.util.Collections;
 import java.util.Map;
 import java.util.stream.Collectors;
 
@@ -35,13 +39,15 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class AuthenticationService {
-    public static String authCookie = "token";
+    public static String ACCESS_TOKEN = "token";
+    public static String REFRESH_TOKEN = "refreshtoken";
     AbstractEmailService mailService;
     AuthenticationManagement authenticationManager;
     AccountService accountService;
     OtpService otpService;
     ForbiddenTokenService forbiddenTokenService;
     UserActivityLogService userActivityLogService;
+    UserDetailsServiceImpl userDetailsService;
     JWTUtils jwtUtils;
 
     public AbstractResponseMessage handleLoginRequest(AccountPostVm accountPostVm) throws Exception {
@@ -66,7 +72,7 @@ public class AuthenticationService {
                 .build();
     }
 
-    public ResponseEntity<AbstractResponseMessage> handleLoginAcceptRequest(LoginAcceptRequestVm loginAcceptRequestVm) throws Exception {
+    public ResponseEntity<ResponseMessage> handleLoginAcceptRequest(LoginAcceptRequestVm loginAcceptRequestVm) throws Exception {
         Claims claims = jwtUtils.validateToken(loginAcceptRequestVm.token());
         String subject = claims.get("principal", String.class);
         String scope = claims.get("scope", String.class);
@@ -79,9 +85,11 @@ public class AuthenticationService {
         throw new AuthenticationException("Invalid OTP");
     }
 
-    public ResponseEntity<AbstractResponseMessage> handleLoginSuccess(String subject, String scope) throws Exception {
+    public ResponseEntity<ResponseMessage> handleLoginSuccess(String subject, String scope) throws Exception {
+        ResponseCookie accessCookie=generateAccessCookie(subject,scope);
+        ResponseCookie refreshCookie=generateRefreshCookie(subject);
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, generateAccessCookie(subject, scope).toString())
+                .header(HttpHeaders.SET_COOKIE, accessCookie.toString(),refreshCookie.toString())
                 .body(ResponseMessage.builder().status(ResponseMessageStatus.SUCCESS.status)
                         .message("Login successfully")
                         .build());
@@ -90,7 +98,7 @@ public class AuthenticationService {
     public ResponseCookie generateAccessCookie(String subject, String scope) throws Exception {
         Map<String, Object> claims = Map.of("scope", scope);
         String token = jwtUtils.generateToken(claims, subject, Instant.now().plus(3, ChronoUnit.HOURS));
-        return ResponseCookie.from(authCookie, token)
+        return ResponseCookie.from(ACCESS_TOKEN, token)
                 .secure(true)
                 .path("/")
                 .sameSite("None")
@@ -116,12 +124,13 @@ public class AuthenticationService {
     }
 
     public ResponseEntity<String> logout(HttpServletRequest request) {
-        String token = RequestUtils.extractValueFromCookie(request, authCookie);
-        if (token != null) {
-            forbiddenTokenService.save(token);
+        String accessToken = RequestUtils.extractValueFromCookie(request, ACCESS_TOKEN);
+        String refreshToken = RequestUtils.extractValueFromCookie(request, REFRESH_TOKEN);
+        if (accessToken != null) {
+            forbiddenTokenService.saveAll(accessToken,refreshToken);
         }
         ResponseCookie expiredCookie = ResponseCookie
-                .from(authCookie, "Expired")
+                .from(ACCESS_TOKEN, "Expired")
                 .maxAge(Duration.ofSeconds(0))
                 .build();
         userActivityLogService.saveActivityLog(UserActivityLog.builder().activityType(ActivityType.LOGOUT).build());
@@ -151,4 +160,29 @@ public class AuthenticationService {
                 .build();
     }
 
+    public ResponseCookie generateRefreshCookie(String email) throws Exception {
+        Map<String,Object> claims=Map.of("principal",email);
+        String refreshToken=jwtUtils.generateToken(claims,"",Instant.now().plus(Duration.ofDays(7)));
+        return ResponseCookie.from(REFRESH_TOKEN, refreshToken)
+                .secure(true)
+                .path("/")
+                .sameSite("None")
+                .httpOnly(true)
+                .maxAge(Duration.ofHours(3))
+                .build();
+    }
+    public ResponseEntity<ResponseMessage> handleRefreshTokenRequest(HttpServletRequest request) throws Exception {
+        String refreshToken=RequestUtils.extractValueFromCookie(request, REFRESH_TOKEN);
+        if(forbiddenTokenService.existsByToken(refreshToken)) throw new AuthenticationException("Invalid refresh token");
+        String principal=jwtUtils.validateToken(refreshToken).get("principal",String.class);
+        UserDetailsImpl userDetails=userDetailsService.loadUserByUsername(principal);
+        String scope=userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(" "));
+        ResponseCookie accessCookie=generateAccessCookie(userDetails.getEmail(),scope);
+        ResponseCookie refreshCookie=generateRefreshCookie(userDetails.getEmail());
+        return ResponseEntity.ok()
+                .header(HttpHeaders.SET_COOKIE, accessCookie.toString(),refreshCookie.toString())
+                .body(ResponseMessage.builder().status(ResponseMessageStatus.SUCCESS.status)
+                        .message("Refresh token successfully")
+                        .build());
+    }
 }

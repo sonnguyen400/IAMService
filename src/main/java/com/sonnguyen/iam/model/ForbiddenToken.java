@@ -11,4 +11,11 @@ public class ForbiddenToken {
     private Long id;
     @Column(columnDefinition = "text")
     private String token;
+
+    public ForbiddenToken() {
+    }
+
+    public ForbiddenToken(String token) {
+        this.token = token;
+    }
 }

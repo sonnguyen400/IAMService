@@ -29,12 +29,14 @@ public class AuthenticationController {
     public AbstractResponseMessage handleLoginRequest(@RequestBody AccountPostVm accountPostVm, HttpServletRequest request) throws Exception {
         return authenticationService.handleLoginRequest(accountPostVm);
     }
-
     @PostMapping(value = "/login/verify")
-    public ResponseEntity<AbstractResponseMessage> handleLoginAcceptRequest(@RequestBody LoginAcceptRequestVm loginAcceptRequestVm) throws Exception {
+    public ResponseEntity<ResponseMessage> handleLoginAcceptRequest(@RequestBody LoginAcceptRequestVm loginAcceptRequestVm) throws Exception {
         return authenticationService.handleLoginAcceptRequest(loginAcceptRequestVm);
     }
-
+    @GetMapping(value = "/login/refresh")
+    public ResponseEntity<ResponseMessage> handleRefreshToken(HttpServletRequest request) throws Exception {
+        return authenticationService.handleRefreshTokenRequest(request);
+    }
     @PostMapping(value = "/password/change")
     @PreAuthorize("hasAnyAuthority('CHANGE_USER_PASSWORD') or (hasAnyAuthority('CHANGE_PASSWORD') and #changingPasswordPostVm.email()==authentication.principal)")
     public AbstractResponseMessage changePassword(@RequestBody ChangingPasswordPostVm changingPasswordPostVm) throws Exception {

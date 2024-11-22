@@ -48,7 +48,7 @@ public class JwtFilter extends OncePerRequestFilter {
 
     private Claims validateToken(HttpServletRequest request) {
         try {
-            String token = RequestUtils.extractValueFromCookie(request, AuthenticationService.authCookie);
+            String token = RequestUtils.extractValueFromCookie(request, AuthenticationService.ACCESS_TOKEN);
             if (forbiddenTokenService.existsByToken(token)) {
                 throw new AuthenticationException("Forbidden token");
             }
