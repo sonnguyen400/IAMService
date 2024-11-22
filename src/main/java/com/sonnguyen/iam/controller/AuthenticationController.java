@@ -37,7 +37,6 @@ public class AuthenticationController {
     public AbstractResponseMessage changePassword(@RequestBody ChangingPasswordPostVm changingPasswordPostVm) throws Exception {
         return authenticationService.changePassword(changingPasswordPostVm);
     }
-
     @GetMapping(value = "/logout")
     public ResponseEntity<String> logout(HttpServletRequest request) throws Exception {
         return authenticationService.logout(request);

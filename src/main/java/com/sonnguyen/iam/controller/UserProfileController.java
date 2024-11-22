@@ -33,6 +33,7 @@ public class UserProfileController {
     }
 
     @GetMapping(value = "/email")
+    @PreAuthorize("hasAnyAuthority('CHANGE_USER_PROFILE') or (hasAnyAuthority('CHANGE_PROFILE') and #email==authentication.principal)")
     public UserProfileGetVm findProfileByEmail(@RequestParam(required = false) String email) {
         return userProfileService.findByAccountEmail(email);
     }
