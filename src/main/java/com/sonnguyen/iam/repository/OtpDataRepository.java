@@ -9,7 +9,7 @@ import org.springframework.stereotype.Repository;
 import java.util.Optional;
 
 @Repository
-public interface OtpDataRepository extends JpaRepository<OtpData,Integer> {
+public interface OtpDataRepository extends JpaRepository<OtpData, Integer> {
     @Query("Select otp from OtpData otp where otp.email=?1 and otp.expiredTimeSeconds>=2")
-    Optional<OtpData> findByEmail(@NonNull String email,@NonNull Long expiredTimeSeconds);
+    Optional<OtpData> findByEmail(@NonNull String email, @NonNull Long expiredTimeSeconds);
 }

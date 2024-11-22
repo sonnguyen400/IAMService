@@ -4,10 +4,10 @@ import lombok.Getter;
 import lombok.Setter;
 import org.springframework.security.core.GrantedAuthority;
 import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
 
 import java.util.Collection;
 import java.util.List;
+
 @Getter
 @Setter
 public class UserDetailsImpl {
@@ -17,15 +17,16 @@ public class UserDetailsImpl {
     private Integer consecutiveLoginFailures;
     private Boolean isEnabled;
     private List<? extends GrantedAuthority> authorities;
+
     public UserDetailsImpl(Account account) {
-        id=account.getId();
-        email=account.getEmail();
-        password=account.getPassword();
-        consecutiveLoginFailures=account.getConsecutiveLoginFailures();
-        isEnabled=account.getIsEnabled();
+        id = account.getId();
+        email = account.getEmail();
+        password = account.getPassword();
+        consecutiveLoginFailures = account.getConsecutiveLoginFailures();
+        isEnabled = account.getIsEnabled();
     }
 
-    public UserDetailsImpl(Long id, String email,Integer consecutiveLoginFailures, Boolean isEnabled, List<? extends GrantedAuthority> authorities) {
+    public UserDetailsImpl(Long id, String email, Integer consecutiveLoginFailures, Boolean isEnabled, List<? extends GrantedAuthority> authorities) {
         this.id = id;
         this.email = email;
         this.consecutiveLoginFailures = consecutiveLoginFailures;
@@ -34,8 +35,9 @@ public class UserDetailsImpl {
     }
 
     public void mapAuthority(List<PermissionDetail> authorities) {
-        this.authorities=authorities.stream().map((authority_)->new SimpleGrantedAuthority(authority_.getName())).toList();
+        this.authorities = authorities.stream().map((authority_) -> new SimpleGrantedAuthority(authority_.getName())).toList();
     }
+
     public boolean isEnabled() {
         return isEnabled;
     }
@@ -53,6 +55,6 @@ public class UserDetailsImpl {
     }
 
     public boolean isAccountNonLocked() {
-        return consecutiveLoginFailures<3;
+        return consecutiveLoginFailures < 3;
     }
 }

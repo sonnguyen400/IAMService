@@ -22,12 +22,14 @@ public class JWTUtils {
     }
 
     public String generateToken(String username) throws Exception {
-        return generateToken(username,Instant.now().plus(3, ChronoUnit.HOURS));
+        return generateToken(username, Instant.now().plus(3, ChronoUnit.HOURS));
     }
-    public String generateToken( String subject, Instant expiration) throws Exception {
-        return generateToken(new HashMap<>(),subject,expiration);
+
+    public String generateToken(String subject, Instant expiration) throws Exception {
+        return generateToken(new HashMap<>(), subject, expiration);
     }
-    public String generateToken(Map<String,Object> claims, String subject, Instant expiration) throws Exception {
+
+    public String generateToken(Map<String, Object> claims, String subject, Instant expiration) throws Exception {
         PrivateKey privateKey = rsaKeyUtil.getPrivateKey();
         return Jwts.builder()
                 .setSubject(subject)
@@ -35,6 +37,7 @@ public class JWTUtils {
                 .setIssuedAt(new Date()).setExpiration(Date.from(expiration)) // 1 giờ
                 .signWith(privateKey, SignatureAlgorithm.RS256).compact();
     }
+
     public Claims validateToken(String token) throws Exception {
         PublicKey publicKey = rsaKeyUtil.getPublicKey();
         return Jwts.parserBuilder().setSigningKey(publicKey).build().parseClaimsJws(token)

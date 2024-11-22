@@ -15,8 +15,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 @Data
-public class UserActivityLog extends AbstractAuditEntity
-{
+public class UserActivityLog extends AbstractAuditEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;

@@ -11,15 +11,17 @@ import java.time.Instant;
 import java.util.Optional;
 
 @Service
-@FieldDefaults(makeFinal = true,level = AccessLevel.PRIVATE)
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 public class OtpDataService {
     OtpDataRepository repository;
+
     public OtpData save(OtpData otpData) {
         Optional<OtpData> otpDataOptional = repository.findByEmail(otpData.getEmail(), Instant.now().getEpochSecond());
         otpDataOptional.ifPresent(data -> otpData.setId(data.getId()));
         return repository.save(otpData);
     }
+
     public Optional<OtpData> findByEmail(String email) {
         return repository.findByEmail(email, Instant.now().getEpochSecond());
     }

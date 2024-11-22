@@ -20,9 +20,10 @@ import java.util.concurrent.CompletableFuture;
 public class SendgridEmailServiceImpl extends AbstractEmailService {
     @Value("${service.mail.sendgrid.apiKey}")
     private String apiKey;
+
     @Override
     public void sendEmail(String dest, String subject, String body) {
-        Email from=new Email(this.from);
+        Email from = new Email(this.from);
         CompletableFuture.runAsync(() -> {
             Email to = new Email(dest);
             Content content1 = new Content(MediaType.TEXT_HTML.getType(), body);

@@ -10,6 +10,7 @@ import java.security.PublicKey;
 import java.security.spec.PKCS8EncodedKeySpec;
 import java.security.spec.X509EncodedKeySpec;
 import java.util.Base64;
+
 @Component
 public class RSAKeyUtil {
     private static final String PRIVATE_KEY_PATH = "src/main/resources/keys/private.pem";

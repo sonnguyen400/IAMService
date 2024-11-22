@@ -16,7 +16,7 @@ public record UserProfilePostVm(
         @NotNull @NotBlank String address,
         @NotNull @NotBlank String phoneNumber
 ) {
-    public UserProfile toEntity(){
+    public UserProfile toEntity() {
         return UserProfile.builder()
                 .firstname(firstname)
                 .lastname(lastname)

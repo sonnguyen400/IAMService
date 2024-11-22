@@ -10,10 +10,11 @@ import org.springframework.stereotype.Service;
 import java.util.List;
 
 @Service
-@FieldDefaults(makeFinal = true,level = AccessLevel.PRIVATE)
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 public class PermissionDetailService {
     PermissionDetailRepository permissionDetailRepository;
+
     List<PermissionDetail> findAllByAccountId(Long accountId) {
         return permissionDetailRepository.findAllPermissionDetailByAccountId(accountId);
     }

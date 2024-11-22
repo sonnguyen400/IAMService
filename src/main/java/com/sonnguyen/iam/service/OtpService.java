@@ -14,15 +14,16 @@ import java.time.Instant;
 import java.util.Optional;
 
 @Service
-@FieldDefaults(makeFinal = true,level = AccessLevel.PRIVATE)
+@FieldDefaults(makeFinal = true, level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
 public class OtpService {
     Argon2PasswordEncoder passwordEncoder;
     OtpDataService otpDataService;
     OtpUtils otpUtils;
+
     public String createAndSave(String subject) {
         String otp = otpUtils.generateOtp();
-        OtpData otpData=new OtpData();
+        OtpData otpData = new OtpData();
         otpData.setOtp(passwordEncoder.encode(otp));
         otpData.setActive(true);
         otpData.setEmail(subject);
@@ -30,9 +31,10 @@ public class OtpService {
         otpDataService.save(otpData);
         return otp;
     }
-    public boolean verifyOtp(String subject,String textPlainOtp) {
-        Optional<OtpData> optionalOtpData=otpDataService.findByEmail(subject);
-        optionalOtpData.orElseThrow(()->new AuthenticationException("Invalid OTP"));
-        return passwordEncoder.matches(textPlainOtp,optionalOtpData.get().getOtp());
+
+    public boolean verifyOtp(String subject, String textPlainOtp) {
+        Optional<OtpData> optionalOtpData = otpDataService.findByEmail(subject);
+        optionalOtpData.orElseThrow(() -> new AuthenticationException("Invalid OTP"));
+        return passwordEncoder.matches(textPlainOtp, optionalOtpData.get().getOtp());
     }
 }
