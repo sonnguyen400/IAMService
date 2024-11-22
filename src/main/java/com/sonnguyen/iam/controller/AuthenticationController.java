@@ -28,7 +28,7 @@ public class AuthenticationController extends BaseController {
         saveActivityLog(UserActivityLog.builder().activityType(ActivityType.LOGIN).email(accountPostVm.email()).build());
         return authenticationService.handleLoginRequest(accountPostVm);
     }
-    @PostMapping(value = "/login")
+    @PostMapping(value = "/login/verify")
     public ResponseEntity<String> handleLoginAcceptRequest(@RequestBody LoginAcceptRequestVm loginAcceptRequestVm) throws Exception {
         return authenticationService.handleLoginAcceptRequest(loginAcceptRequestVm);
     }

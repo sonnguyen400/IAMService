@@ -46,4 +46,9 @@ public class RestExceptionHandler {
     public String handleAuthenticationException(AuthenticationException e) {
         return e.getMessage();
     }
+    @ExceptionHandler(ResourceNotFoundException.class)
+    @ResponseStatus(HttpStatus.NOT_FOUND)
+    public String handleResourceNotFoundException(ResourceNotFoundException e) {
+        return e.getMessage();
+    }
 }

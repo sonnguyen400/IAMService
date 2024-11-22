@@ -33,12 +33,13 @@ public class UserProfileController extends BaseController {
         saveActivityLog(UserActivityLog.builder().activityType(ActivityType.MODIFY_PASSWORD).build());
         return userProfileService.saveUserProfile(userProfile);
     }
-    @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PostMapping(value = "/picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
+    @PreAuthorize("hasAnyAuthority('CHANGE_USER_PROFILE') or (hasAnyAuthority('CHANGE_PROFILE') and #userProfile.email()==authentication.principal)")
     public String setUploadProfilePicture(@NotNull @RequestPart(name = "picture") MultipartFile picture,@NotNull @NotBlank String email){
         return userProfileService.setProfilePicture(email,picture);
     }
-    @GetMapping(value = "/mail")
-    public UserProfileGetVm findProfileByEmail(@RequestParam(required = false) String mail) {
-        return userProfileService.findByAccountEmail(mail);
+    @GetMapping(value = "/email")
+    public UserProfileGetVm findProfileByEmail(@RequestParam(required = false) String email) {
+        return userProfileService.findByAccountEmail(email);
     }
 }

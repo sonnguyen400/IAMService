@@ -29,7 +29,7 @@ public class UserProfileService {
     }
     public UserProfileGetVm findByAccountEmail(String accountEmail) {
         Account account= accountService.findByEmail(accountEmail).orElseThrow(()->new ResourceNotFoundException("Account with email " + accountEmail + " not found"));
-        UserProfile userProfile = userProfileRepository.findByAccount_id(account.getId()).orElseThrow(()->new ResourceNotFoundException("User with id " + account.getId() + " not found"));
+        UserProfile userProfile = userProfileRepository.findByAccount_id(account.getId()).orElseThrow(()->new ResourceNotFoundException("User's profile with email " + accountEmail + " has yet set up"));
         return UserProfileGetVm.map(userProfile,account.getEmail());
     }
     public String setProfilePicture(String email,MultipartFile file) {

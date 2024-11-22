@@ -11,6 +11,7 @@ import jakarta.servlet.http.HttpServletRequest;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpHeaders;
 import org.springframework.http.ResponseCookie;
 import org.springframework.http.ResponseEntity;
@@ -34,6 +35,7 @@ import java.util.stream.Collectors;
 @Service
 @FieldDefaults(makeFinal = true,level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
+@Slf4j
 public class AuthenticationService {
     public static String authCookie = "token";
     AbstractEmailService mailService;
@@ -52,6 +54,8 @@ public class AuthenticationService {
                 "principal",authenticatedAuth.getPrincipal(),
                 "scope",authenticatedAuth.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(" "))
         );
+        log.info("A valid OTP was sent to email:{}",authenticatedAuth.getPrincipal());
+        log.info("OTP: {}",otp);
         mailService.sendEmail((String) authenticatedAuth.getPrincipal(),"OTP for validate login session",otp);
         return ResponseEntity.ok(jwtUtils.generateToken(claims,"",Instant.now().plus(Duration.ofMinutes(3))));
     }
