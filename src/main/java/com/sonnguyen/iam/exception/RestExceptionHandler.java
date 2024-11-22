@@ -1,5 +1,8 @@
 package com.sonnguyen.iam.exception;
 
+import com.sonnguyen.iam.utils.AbstractResponseMessage;
+import com.sonnguyen.iam.utils.ResponseMessage;
+import com.sonnguyen.iam.utils.ResponseMessageStatus;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -18,43 +21,67 @@ import java.util.stream.Collectors;
 public class RestExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String handleConstraintViolationException(ConstraintViolationException e) {
-        return e.getConstraintViolations().stream().map((ConstraintViolation::getMessage)).collect(Collectors.joining("\n"));
+    public AbstractResponseMessage handleConstraintViolationException(ConstraintViolationException e) {
+        return ResponseMessage.builder()
+                .status(ResponseMessageStatus.FAIL.status)
+                .message(e.getConstraintViolations().stream().map((ConstraintViolation::getMessage)).collect(Collectors.joining("\n")))
+                .build();
     }
-
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public Object handleMethodArgumentException(MethodArgumentNotValidException e) {
-        return Arrays.stream(e.getDetailMessageArguments());
+    public AbstractResponseMessage handleMethodArgumentException(MethodArgumentNotValidException e) {
+        return ResponseMessage.builder()
+                .status(ResponseMessageStatus.FAIL.status)
+                .message(Arrays.stream(e.getDetailMessageArguments()))
+                .build();
     }
-
     @ExceptionHandler(DuplicatedException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String handleDuplicatedException(DuplicatedException e) {
-        return e.getMessage();
+    public AbstractResponseMessage handleDuplicatedException(DuplicatedException e) {
+        return ResponseMessage
+                .builder()
+                .status(ResponseMessageStatus.FAIL.status)
+                .message(e.getMessage())
+                .build();
     }
 
     @ExceptionHandler(InvalidArgumentException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String handleInvalidArgumentException(InvalidArgumentException e) {
-        return e.getMessage();
+    public AbstractResponseMessage handleInvalidArgumentException(InvalidArgumentException e) {
+        return ResponseMessage
+                .builder()
+                .status(ResponseMessageStatus.FAIL.status)
+                .message(e.getMessage())
+                .build();
     }
 
     @ExceptionHandler(BadCredentialsException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String handleInvalidArgumentException(BadCredentialsException e) {
-        return e.getMessage();
+    public AbstractResponseMessage handleInvalidArgumentException(BadCredentialsException e) {
+        return ResponseMessage
+                .builder()
+                .status(ResponseMessageStatus.FAIL.status)
+                .message(e.getMessage())
+                .build();
     }
 
     @ExceptionHandler(AuthenticationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public String handleAuthenticationException(AuthenticationException e) {
-        return e.getMessage();
+    public AbstractResponseMessage handleAuthenticationException(AuthenticationException e) {
+        return ResponseMessage
+                .builder()
+                .status(ResponseMessageStatus.FAIL.status)
+                .message(e.getMessage())
+                .build();
     }
 
     @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public String handleResourceNotFoundException(ResourceNotFoundException e) {
-        return e.getMessage();
+    public AbstractResponseMessage handleResourceNotFoundException(ResourceNotFoundException e) {
+        return ResponseMessage
+                .builder()
+                .status(ResponseMessageStatus.FAIL.status)
+                .message(e.getMessage())
+                .build();
     }
 }

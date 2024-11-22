@@ -5,7 +5,10 @@ import com.sonnguyen.iam.exception.InvalidArgumentException;
 import com.sonnguyen.iam.exception.ResourceNotFoundException;
 import com.sonnguyen.iam.model.Account;
 import com.sonnguyen.iam.repository.AccountRepository;
+import com.sonnguyen.iam.utils.AbstractResponseMessage;
 import com.sonnguyen.iam.utils.JWTUtils;
+import com.sonnguyen.iam.utils.ResponseMessage;
+import com.sonnguyen.iam.utils.ResponseMessageStatus;
 import com.sonnguyen.iam.viewmodel.AccountGetVm;
 import com.sonnguyen.iam.viewmodel.AccountPostVm;
 import jakarta.transaction.Transactional;
@@ -28,7 +31,6 @@ public class AccountService {
     AccountRepository accountRepository;
     Argon2PasswordEncoder argon2PasswordEncoder;
     AbstractEmailService emailService;
-    PermissionService permissionService;
     JWTUtils jwtUtils;
 
     public Optional<Account> findByEmail(String email) {
@@ -57,28 +59,31 @@ public class AccountService {
         return AccountGetVm.fromAccount(accountRepository.save(initialAccount));
     }
 
-    public void sendActiveAccountEmail(String email) throws Exception {
+    public AbstractResponseMessage sendActiveAccountEmail(String email) throws Exception {
         accountRepository.findByEmail(email).orElseThrow(() -> new InvalidArgumentException(String.format("Email %s not found", email)));
         String activeCode = jwtUtils.generateToken(email, Instant.now().plus(3, ChronoUnit.MINUTES));
         log.info("Send code to email: {}", email);// Verification Code expired in 5 minutes
         log.info("Email content: http://localhost:8080/api/v1/account/active?code={}", activeCode);
         emailService.sendEmail(email, "Active account", "http://localhost:8080/api/v1/account/active?code=" + activeCode);
+        return ResponseMessage.builder()
+                        .message("An activation code was send to email"+email)
+                        .status(ResponseMessageStatus.SUCCESS.status)
+                .build();
     }
 
     @Transactional
-    public void verifyAccountByActiveCode(String activeCode) throws Exception {
-
+    public AbstractResponseMessage verifyAccountByActiveCode(String activeCode) throws Exception {
         String extractedEmail = jwtUtils.validateToken(activeCode).getSubject();
-        log.info("Extracted email: {}", extractedEmail);
         if (!accountRepository.existsByEmail(extractedEmail)) {
             throw new InvalidArgumentException("Invalid activation code");
         }
         accountRepository.enableAccountByEmail(extractedEmail);
+        return ResponseMessage.builder()
+                .status(ResponseMessageStatus.SUCCESS.status)
+                .message(extractedEmail+" was verified")
+                .build();
     }
 
-    public void updateAccount(Account account) {
-
-    }
 
     @Transactional
     public void changePassword(String email, String plainTextNewPassword) {

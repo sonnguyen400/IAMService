@@ -2,6 +2,9 @@ package com.sonnguyen.iam.service;
 
 import com.sonnguyen.iam.model.AccountPermission;
 import com.sonnguyen.iam.model.Permission;
+import com.sonnguyen.iam.utils.AbstractResponseMessage;
+import com.sonnguyen.iam.utils.ResponseMessage;
+import com.sonnguyen.iam.utils.ResponseMessageStatus;
 import com.sonnguyen.iam.viewmodel.AccountGetVm;
 import com.sonnguyen.iam.viewmodel.AccountPostVm;
 import lombok.AccessLevel;
@@ -21,7 +24,7 @@ public class UserAccountService {
     AccountPermissionService accountPermissionService;
 
     @Transactional
-    public AccountGetVm registerNewAccount(AccountPostVm accountPostVm) {
+    public AbstractResponseMessage registerNewAccount(AccountPostVm accountPostVm) {
         //Find appropriate permission for new Account
         Permission permission = permissionService.findByName("USER").orElseThrow(
                 () -> new RuntimeException("Permission not found")
@@ -34,6 +37,11 @@ public class UserAccountService {
                 .account_id(account.id())
                 .build();
         accountPermissionService.save(accountPermission);
-        return account;
+        return ResponseMessage
+                .builder()
+                .status(ResponseMessageStatus.CONTINUOUS.status)
+                .content("")
+                .message("Account is registered successfully but still need to be verify")
+                .build();
     }
 }

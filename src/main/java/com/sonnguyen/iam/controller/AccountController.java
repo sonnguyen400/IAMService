@@ -2,6 +2,7 @@ package com.sonnguyen.iam.controller;
 
 import com.sonnguyen.iam.service.AccountService;
 import com.sonnguyen.iam.service.UserAccountService;
+import com.sonnguyen.iam.utils.AbstractResponseMessage;
 import com.sonnguyen.iam.viewmodel.AccountGetVm;
 import com.sonnguyen.iam.viewmodel.AccountPostVm;
 import jakarta.validation.Valid;
@@ -19,22 +20,20 @@ public class AccountController {
     UserAccountService userAccountService;
 
     @PostMapping(value = "/register")
-    public AccountGetVm registerNewAccount(
+    public AbstractResponseMessage registerNewAccount(
             @Valid @RequestBody AccountPostVm account
     ) {
         return userAccountService.registerNewAccount(account);
     }
 
     @GetMapping(value = "/verify")
-    public String verifyAccount(@RequestParam String email) throws Exception {
-        accountService.sendActiveAccountEmail(email);
-        return String.format("Send activation code to email %s", email);
+    public AbstractResponseMessage verifyAccount(@RequestParam String email) throws Exception {
+        return accountService.sendActiveAccountEmail(email);
     }
 
     @GetMapping(value = "/active")
-    public String activeAccountByActiveCode(@RequestParam String code) throws Exception {
-        accountService.verifyAccountByActiveCode(code);
-        return "Active account successfully";
+    public AbstractResponseMessage activeAccountByActiveCode(@RequestParam String code) throws Exception {
+        return accountService.verifyAccountByActiveCode(code);
     }
 
     @GetMapping(value = "/{id}")

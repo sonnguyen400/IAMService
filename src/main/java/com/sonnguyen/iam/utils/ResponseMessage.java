@@ -2,6 +2,9 @@ package com.sonnguyen.iam.utils;
 
 import lombok.Builder;
 
-@Builder
-public class ResponseMessage {
+public class ResponseMessage extends AbstractResponseMessage{
+    @Builder
+    ResponseMessage(int status, Object message, Object content) {
+        super(status, message, content);
+    }
 }

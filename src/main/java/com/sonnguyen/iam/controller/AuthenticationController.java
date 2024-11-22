@@ -1,6 +1,7 @@
 package com.sonnguyen.iam.controller;
 
 import com.sonnguyen.iam.service.AuthenticationService;
+import com.sonnguyen.iam.utils.AbstractResponseMessage;
 import com.sonnguyen.iam.viewmodel.AccountPostVm;
 import com.sonnguyen.iam.viewmodel.ChangingPasswordPostVm;
 import com.sonnguyen.iam.viewmodel.LoginAcceptRequestVm;
@@ -22,18 +23,18 @@ public class AuthenticationController {
     AuthenticationService authenticationService;
 
     @PostMapping(value = "/login")
-    public ResponseEntity<String> handleLoginRequest(@RequestBody AccountPostVm accountPostVm, HttpServletRequest request) throws Exception {
+    public AbstractResponseMessage handleLoginRequest(@RequestBody AccountPostVm accountPostVm, HttpServletRequest request) throws Exception {
         return authenticationService.handleLoginRequest(accountPostVm);
     }
 
     @PostMapping(value = "/login/verify")
-    public ResponseEntity<String> handleLoginAcceptRequest(@RequestBody LoginAcceptRequestVm loginAcceptRequestVm) throws Exception {
+    public ResponseEntity<AbstractResponseMessage> handleLoginAcceptRequest(@RequestBody LoginAcceptRequestVm loginAcceptRequestVm) throws Exception {
         return authenticationService.handleLoginAcceptRequest(loginAcceptRequestVm);
     }
 
     @PostMapping(value = "/password/change")
     @PreAuthorize("hasAnyAuthority('CHANGE_USER_PASSWORD') or (hasAnyAuthority('CHANGE_PASSWORD') and #changingPasswordPostVm.email()==authentication.principal)")
-    public String changePassword(@RequestBody ChangingPasswordPostVm changingPasswordPostVm) throws Exception {
+    public AbstractResponseMessage changePassword(@RequestBody ChangingPasswordPostVm changingPasswordPostVm) throws Exception {
         return authenticationService.changePassword(changingPasswordPostVm);
     }
 
