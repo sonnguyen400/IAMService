@@ -45,7 +45,6 @@ public class AuthenticationService {
     JWTUtils jwtUtils;
 
     public AbstractResponseMessage handleLoginRequest(AccountPostVm accountPostVm) throws Exception {
-        userActivityLogService.saveActivityLog(UserActivityLog.builder().activityType(ActivityType.LOGIN).email(accountPostVm.email()).build());
         Authentication authenticatedAuth = authenticationManager.authenticate(accountPostVm.email(), accountPostVm.password());
         return handleSuccessLoginRequest(authenticatedAuth);
     }
@@ -72,7 +71,11 @@ public class AuthenticationService {
         String subject = claims.get("principal", String.class);
         String scope = claims.get("scope", String.class);
         boolean isValidOtp = otpService.verifyOtp(subject, loginAcceptRequestVm.otp());
-        if (isValidOtp) return handleLoginSuccess(subject, scope);
+        if (isValidOtp) {
+            mailService.sendEmail(subject,"Login Successfully","Login");
+            userActivityLogService.saveActivityLog(UserActivityLog.builder().activityType(ActivityType.LOGIN).email(subject).build());
+            return handleLoginSuccess(subject, scope);
+        }
         throw new AuthenticationException("Invalid OTP");
     }
 
@@ -141,6 +144,7 @@ public class AuthenticationService {
     public ResponseMessage acceptForgotPasswordRequest(ForgotPasswordPostVm forgotPasswordPostVm) throws Exception {
         String email=jwtUtils.validateToken(forgotPasswordPostVm.token()).getSubject();
         accountService.changePassword(email,forgotPasswordPostVm.newPassword());
+        mailService.sendEmail(email,"Update password","Your password has been changed");
         return  ResponseMessage.builder()
                 .status(ResponseMessageStatus.SUCCESS.status)
                 .message("Change password successfully")

@@ -2,6 +2,8 @@ package com.sonnguyen.iam.exception;
 
 import com.sonnguyen.iam.utils.ResponseMessage;
 import com.sonnguyen.iam.utils.ResponseMessageStatus;
+import io.jsonwebtoken.ClaimJwtException;
+import io.jsonwebtoken.JwtException;
 import jakarta.validation.ConstraintViolation;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -55,8 +57,19 @@ public class RestExceptionHandler {
                 .build();
     }
 
-    @ExceptionHandler(BadCredentialsException.class)
+
+    @ExceptionHandler({JwtException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
+    public ResponseMessage handleJwtException(Exception e) {
+        return ResponseMessage
+                .builder()
+                .status(ResponseMessageStatus.FAIL.status)
+                .message(e.getMessage())
+                .build();
+    }
+
+    @ExceptionHandler(BadCredentialsException.class)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseMessage handleInvalidArgumentException(BadCredentialsException e) {
         return ResponseMessage
                 .builder()
@@ -66,7 +79,7 @@ public class RestExceptionHandler {
     }
 
     @ExceptionHandler(AuthenticationException.class)
-    @ResponseStatus(HttpStatus.BAD_REQUEST)
+    @ResponseStatus(HttpStatus.UNAUTHORIZED)
     public ResponseMessage handleAuthenticationException(AuthenticationException e) {
         return ResponseMessage
                 .builder()

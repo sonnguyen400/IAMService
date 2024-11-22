@@ -16,7 +16,7 @@ service:
   mail:
     from: hellohoangson@gmail.com
     sendgrid:
-      apiKey: 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
+      apiKey: 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
 #redis:
 #  host: localhost
 #  port: 6379
