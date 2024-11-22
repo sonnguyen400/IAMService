@@ -1,11 +1,13 @@
 package com.sonnguyen.iam.service;
 
 import com.sonnguyen.iam.constant.ActivityType;
+import com.sonnguyen.iam.exception.ResourceNotFoundException;
 import com.sonnguyen.iam.model.UserActivityLog;
 import com.sonnguyen.iam.security.AuthenticationManagement;
 import com.sonnguyen.iam.utils.*;
 import com.sonnguyen.iam.viewmodel.AccountPostVm;
 import com.sonnguyen.iam.viewmodel.ChangingPasswordPostVm;
+import com.sonnguyen.iam.viewmodel.ForgotPasswordPostVm;
 import com.sonnguyen.iam.viewmodel.LoginAcceptRequestVm;
 import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
@@ -124,4 +126,25 @@ public class AuthenticationService {
                 .header(HttpHeaders.SET_COOKIE, expiredCookie.toString())
                 .body("Logout Success");
     }
+
+    public ResponseMessage sendEmailForgotPassword(String email) throws Exception {
+        accountService.findByEmail(email).orElseThrow(()->new ResourceNotFoundException("Can't not find account registered with "+email));
+        String token=jwtUtils.generateToken(email,Instant.now().plus(5, ChronoUnit.MINUTES));
+        log.info("Email was sent: {}","http://localhost:8080/api/v1/auth/password/forgot/accept?token="+token);
+        mailService.sendEmail(email,"Forgot password","http://localhost:8080/api/v1/auth/password/forgot/accept?token="+token);
+        return ResponseMessage.builder()
+                .status(ResponseMessageStatus.SUCCESS.status)
+                .message("An authentication email was sent to your email address : ")
+                .content("[Debug]:"+token)
+                .build();
+    }
+    public ResponseMessage acceptForgotPasswordRequest(ForgotPasswordPostVm forgotPasswordPostVm) throws Exception {
+        String email=jwtUtils.validateToken(forgotPasswordPostVm.token()).getSubject();
+        accountService.changePassword(email,forgotPasswordPostVm.newPassword());
+        return  ResponseMessage.builder()
+                .status(ResponseMessageStatus.SUCCESS.status)
+                .message("Change password successfully")
+                .build();
+    }
+
 }

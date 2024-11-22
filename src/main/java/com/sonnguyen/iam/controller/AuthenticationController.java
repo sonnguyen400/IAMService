@@ -2,10 +2,13 @@ package com.sonnguyen.iam.controller;
 
 import com.sonnguyen.iam.service.AuthenticationService;
 import com.sonnguyen.iam.utils.AbstractResponseMessage;
+import com.sonnguyen.iam.utils.ResponseMessage;
 import com.sonnguyen.iam.viewmodel.AccountPostVm;
 import com.sonnguyen.iam.viewmodel.ChangingPasswordPostVm;
+import com.sonnguyen.iam.viewmodel.ForgotPasswordPostVm;
 import com.sonnguyen.iam.viewmodel.LoginAcceptRequestVm;
 import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -40,5 +43,14 @@ public class AuthenticationController {
     @GetMapping(value = "/logout")
     public ResponseEntity<String> logout(HttpServletRequest request) throws Exception {
         return authenticationService.logout(request);
+    }
+
+    @GetMapping(value = "/password/forgot")
+    public ResponseMessage requestForgotPassword(@RequestParam String email) throws Exception {
+        return authenticationService.sendEmailForgotPassword(email);
+    }
+    @PostMapping(value = "/password/forgot/accept")
+    public ResponseMessage forgotPasswordAccept(@RequestBody @Valid ForgotPasswordPostVm forgotPasswordPostVm) throws Exception {
+        return authenticationService.acceptForgotPasswordRequest(forgotPasswordPostVm);
     }
 }
