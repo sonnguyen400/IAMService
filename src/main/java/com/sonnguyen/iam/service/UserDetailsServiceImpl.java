@@ -1,12 +1,11 @@
 package com.sonnguyen.iam.service;
 
+import com.sonnguyen.iam.exception.AuthenticationException;
 import com.sonnguyen.iam.model.PermissionDetail;
 import com.sonnguyen.iam.model.UserDetailsImpl;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.stereotype.Service;
 
@@ -27,6 +26,6 @@ public class UserDetailsServiceImpl {
                     userDetails.mapAuthority(permissionDetails);
                     return userDetails;
                 }))
-                .orElseThrow(()->new UsernameNotFoundException(String.format("Can't not find user with email %s",email)));
+                .orElseThrow(()->new AuthenticationException(String.format("Can't not find user with email %s",email)));
     }
 }

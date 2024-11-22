@@ -25,16 +25,16 @@ import java.util.List;
 @RequestMapping("/api/v1/profile")
 @FieldDefaults(makeFinal = true,level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
-public class UserProfileController extends BaseController {
+public class UserProfileController {
     UserProfileService userProfileService;
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyAuthority('CHANGE_USER_PROFILE') or (hasAnyAuthority('CHANGE_PROFILE') and #userProfile.email()==authentication.principal)")
     public String createNewProfile(@Valid UserProfilePostVm userProfile) {
-        saveActivityLog(UserActivityLog.builder().activityType(ActivityType.MODIFY_PASSWORD).build());
+
         return userProfileService.saveUserProfile(userProfile);
     }
     @PostMapping(value = "/picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAnyAuthority('CHANGE_USER_PROFILE') or (hasAnyAuthority('CHANGE_PROFILE') and #userProfile.email()==authentication.principal)")
+    @PreAuthorize("hasAnyAuthority('CHANGE_USER_PROFILE') or (hasAnyAuthority('CHANGE_PROFILE') and email()==authentication.principal)")
     public String setUploadProfilePicture(@NotNull @RequestPart(name = "picture") MultipartFile picture,@NotNull @NotBlank String email){
         return userProfileService.setProfilePicture(email,picture);
     }

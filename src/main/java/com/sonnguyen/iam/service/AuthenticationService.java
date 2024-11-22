@@ -1,5 +1,7 @@
 package com.sonnguyen.iam.service;
 
+import com.sonnguyen.iam.constant.ActivityType;
+import com.sonnguyen.iam.model.UserActivityLog;
 import com.sonnguyen.iam.security.AuthenticationManagement;
 import com.sonnguyen.iam.utils.JWTUtils;
 import com.sonnguyen.iam.utils.RequestUtils;
@@ -43,8 +45,10 @@ public class AuthenticationService {
     AccountService accountService;
     OtpService otpService;
     ForbiddenTokenService forbiddenTokenService;
+    UserActivityLogService userActivityLogService;
     JWTUtils jwtUtils;
     public ResponseEntity<String> handleLoginRequest(AccountPostVm accountPostVm) throws Exception {
+        userActivityLogService.saveActivityLog(UserActivityLog.builder().activityType(ActivityType.LOGIN).email(accountPostVm.email()).build());
         Authentication authenticatedAuth=authenticationManager.authenticate(accountPostVm.email(), accountPostVm.password());
         return handleSuccessLoginRequest(authenticatedAuth);
     }
@@ -69,6 +73,7 @@ public class AuthenticationService {
         throw new AuthenticationException("Invalid OTP");
     }
     public ResponseEntity<String> handleLoginSuccess(String subject,String scope) throws Exception {
+
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE,generateAccessCookie(subject,scope).toString())
                 .body("login successfully");
@@ -93,6 +98,7 @@ public class AuthenticationService {
         }
         mailService.sendEmail(changingPasswordPostVm.email(),"Update Credentials","Your password has been changed");
         accountService.changePassword(changingPasswordPostVm.email(), changingPasswordPostVm.newPassword());
+        userActivityLogService.saveActivityLog(UserActivityLog.builder().activityType(ActivityType.MODIFY_PASSWORD).build());
         return "Change password successfully";
     }
     public ResponseEntity<String> logout(HttpServletRequest request){
@@ -104,6 +110,7 @@ public class AuthenticationService {
                 .from(authCookie,"Expired")
                 .maxAge(Duration.ofSeconds(0))
                 .build();
+        userActivityLogService.saveActivityLog(UserActivityLog.builder().activityType(ActivityType.LOGOUT).build());
         return ResponseEntity.ok()
                 .header(HttpHeaders.SET_COOKIE,expiredCookie.toString())
                 .body("Logout Success");

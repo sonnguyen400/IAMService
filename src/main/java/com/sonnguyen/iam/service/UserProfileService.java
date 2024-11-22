@@ -1,7 +1,9 @@
 package com.sonnguyen.iam.service;
 
+import com.sonnguyen.iam.constant.ActivityType;
 import com.sonnguyen.iam.exception.ResourceNotFoundException;
 import com.sonnguyen.iam.model.Account;
+import com.sonnguyen.iam.model.UserActivityLog;
 import com.sonnguyen.iam.model.UserProfile;
 import com.sonnguyen.iam.repository.UserProfileRepository;
 import com.sonnguyen.iam.viewmodel.UserProfileGetVm;
@@ -21,7 +23,9 @@ import java.util.Optional;
 @RequiredArgsConstructor
 public class UserProfileService {
     UserProfileRepository userProfileRepository;
+    UserAccountService userAccountService;
     AccountService accountService;
+    UserActivityLogService userActivityLogService;
     CloudinaryService cloudinaryService;
     AbstractEmailService emailService;
     public UserProfile findById(Long id) {
@@ -38,6 +42,7 @@ public class UserProfileService {
         userProfile.setPicture_url(picture_url);
         userProfileRepository.save(userProfile);
         emailService.sendEmail(email,"Update profile","Your profile picture has been updated");
+        userActivityLogService.saveActivityLog(UserActivityLog.builder().activityType(ActivityType.MODIFY_PROFILE).build());
         return "Set profile picture successfully";
     }
     public String saveUserProfile(UserProfilePostVm userProfilePostVm) {
@@ -47,6 +52,7 @@ public class UserProfileService {
         log.info("Saving user detail {}", userProfile.getId());
         userProfileRepository.save(userProfile);
         emailService.sendEmail(userProfilePostVm.email(),"Update profile","Your profile has been updated");
+        userActivityLogService.saveActivityLog(UserActivityLog.builder().activityType(ActivityType.MODIFY_PROFILE).build());
         return "Update profile successfully";
     }
     public UserProfile initUserProfile(String email) {

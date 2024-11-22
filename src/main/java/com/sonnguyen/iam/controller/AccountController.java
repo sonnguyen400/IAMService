@@ -14,7 +14,7 @@ import org.springframework.web.bind.annotation.*;
 @RequestMapping("/api/v1/account")
 @FieldDefaults(makeFinal = true,level = AccessLevel.PRIVATE)
 @RequiredArgsConstructor
-public class AccountController extends BaseController{
+public class AccountController{
     AccountService accountService;
     UserAccountService userAccountService;
     @PostMapping(value = "/register")
