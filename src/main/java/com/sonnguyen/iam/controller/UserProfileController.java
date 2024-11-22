@@ -1,11 +1,10 @@
 package com.sonnguyen.iam.controller;
 
 import com.sonnguyen.iam.service.UserProfileService;
+import com.sonnguyen.iam.utils.ResponseMessage;
 import com.sonnguyen.iam.viewmodel.UserProfileGetVm;
 import com.sonnguyen.iam.viewmodel.UserProfilePostVm;
 import jakarta.validation.Valid;
-import jakarta.validation.constraints.NotBlank;
-import jakarta.validation.constraints.NotNull;
 import lombok.AccessLevel;
 import lombok.RequiredArgsConstructor;
 import lombok.experimental.FieldDefaults;
@@ -23,14 +22,13 @@ public class UserProfileController {
 
     @PostMapping(consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
     @PreAuthorize("hasAnyAuthority('CHANGE_USER_PROFILE') or (hasAnyAuthority('CHANGE_PROFILE') and #userProfile.email()==authentication.principal)")
-    public String createNewProfile(@Valid UserProfilePostVm userProfile) {
-
+    public ResponseMessage createNewProfile(@Valid UserProfilePostVm userProfile) {
         return userProfileService.saveUserProfile(userProfile);
     }
 
     @PostMapping(value = "/picture", consumes = MediaType.MULTIPART_FORM_DATA_VALUE)
-    @PreAuthorize("hasAnyAuthority('CHANGE_USER_PROFILE') or (hasAnyAuthority('CHANGE_PROFILE') and email()==authentication.principal)")
-    public String setUploadProfilePicture(@NotNull @RequestPart(name = "picture") MultipartFile picture, @NotNull @NotBlank String email) {
+    @PreAuthorize("hasAnyAuthority('CHANGE_USER_PROFILE') or (hasAnyAuthority('CHANGE_PROFILE') and #email==authentication.principal)")
+    public ResponseMessage setUploadProfilePicture(@RequestPart(name = "picture") MultipartFile picture, @RequestPart(name = "email") String email) {
         return userProfileService.setProfilePicture(email, picture);
     }
 

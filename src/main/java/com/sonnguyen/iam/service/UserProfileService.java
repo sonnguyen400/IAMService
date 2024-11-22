@@ -6,6 +6,8 @@ import com.sonnguyen.iam.model.Account;
 import com.sonnguyen.iam.model.UserActivityLog;
 import com.sonnguyen.iam.model.UserProfile;
 import com.sonnguyen.iam.repository.UserProfileRepository;
+import com.sonnguyen.iam.utils.ResponseMessage;
+import com.sonnguyen.iam.utils.ResponseMessageStatus;
 import com.sonnguyen.iam.viewmodel.UserProfileGetVm;
 import com.sonnguyen.iam.viewmodel.UserProfilePostVm;
 import lombok.AccessLevel;
@@ -39,25 +41,32 @@ public class UserProfileService {
         return UserProfileGetVm.map(userProfile, account.getEmail());
     }
 
-    public String setProfilePicture(String email, MultipartFile file) {
-        UserProfile userProfile = initUserProfile(email);
+    public ResponseMessage setProfilePicture(String email, MultipartFile file) {
+        UserProfile olduUserProfile = initUserProfile(email);
         String picture_url = (String) cloudinaryService.upload(file).get("url");
-        userProfile.setPicture_url(picture_url);
-        userProfileRepository.save(userProfile);
+        olduUserProfile.setPicture_url(picture_url);
+        userProfileRepository.save(olduUserProfile);
         emailService.sendEmail(email, "Update profile", "Your profile picture has been updated");
         userActivityLogService.saveActivityLog(UserActivityLog.builder().activityType(ActivityType.MODIFY_PROFILE).build());
-        return "Set profile picture successfully";
+        return ResponseMessage.builder()
+                .status(ResponseMessageStatus.SUCCESS.status)
+                .message( "Update profile successfully")
+                .build();
     }
 
-    public String saveUserProfile(UserProfilePostVm userProfilePostVm) {
-        UserProfile userProfile = initUserProfile(userProfilePostVm.email());
+    public ResponseMessage saveUserProfile(UserProfilePostVm userProfilePostVm) {
+        UserProfile olduUserProfile = initUserProfile(userProfilePostVm.email());
         UserProfile newUserProfile = userProfilePostVm.toEntity();
-        newUserProfile.setAccount_id(userProfile.getAccount_id());
-        log.info("Saving user detail {}", userProfile.getId());
-        userProfileRepository.save(userProfile);
+        newUserProfile.setAccount_id(olduUserProfile.getAccount_id());
+        newUserProfile.setId(olduUserProfile.getId());
+        log.info("Saving user detail {}", olduUserProfile.getId());
+        userProfileRepository.save(newUserProfile);
         emailService.sendEmail(userProfilePostVm.email(), "Update profile", "Your profile has been updated");
         userActivityLogService.saveActivityLog(UserActivityLog.builder().activityType(ActivityType.MODIFY_PROFILE).build());
-        return "Update profile successfully";
+        return ResponseMessage.builder()
+                .status(ResponseMessageStatus.SUCCESS.status)
+                .message( "Update profile successfully")
+                .build();
     }
 
     public UserProfile initUserProfile(String email) {

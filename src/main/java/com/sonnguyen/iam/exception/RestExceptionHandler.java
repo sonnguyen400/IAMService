@@ -1,6 +1,5 @@
 package com.sonnguyen.iam.exception;
 
-import com.sonnguyen.iam.utils.AbstractResponseMessage;
 import com.sonnguyen.iam.utils.ResponseMessage;
 import com.sonnguyen.iam.utils.ResponseMessageStatus;
 import jakarta.validation.ConstraintViolation;
@@ -12,6 +11,7 @@ import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.multipart.support.MissingServletRequestPartException;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
@@ -21,7 +21,7 @@ import java.util.stream.Collectors;
 public class RestExceptionHandler {
     @ExceptionHandler(ConstraintViolationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public AbstractResponseMessage handleConstraintViolationException(ConstraintViolationException e) {
+    public ResponseMessage handleConstraintViolationException(ConstraintViolationException e) {
         return ResponseMessage.builder()
                 .status(ResponseMessageStatus.FAIL.status)
                 .message(e.getConstraintViolations().stream().map((ConstraintViolation::getMessage)).collect(Collectors.joining("\n")))
@@ -29,7 +29,7 @@ public class RestExceptionHandler {
     }
     @ExceptionHandler(MethodArgumentNotValidException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public AbstractResponseMessage handleMethodArgumentException(MethodArgumentNotValidException e) {
+    public ResponseMessage handleMethodArgumentException(MethodArgumentNotValidException e) {
         return ResponseMessage.builder()
                 .status(ResponseMessageStatus.FAIL.status)
                 .message(Arrays.stream(e.getDetailMessageArguments()))
@@ -37,7 +37,7 @@ public class RestExceptionHandler {
     }
     @ExceptionHandler(DuplicatedException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public AbstractResponseMessage handleDuplicatedException(DuplicatedException e) {
+    public ResponseMessage handleDuplicatedException(DuplicatedException e) {
         return ResponseMessage
                 .builder()
                 .status(ResponseMessageStatus.FAIL.status)
@@ -45,9 +45,9 @@ public class RestExceptionHandler {
                 .build();
     }
 
-    @ExceptionHandler(InvalidArgumentException.class)
+    @ExceptionHandler({InvalidArgumentException.class, MissingServletRequestPartException.class})
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public AbstractResponseMessage handleInvalidArgumentException(InvalidArgumentException e) {
+    public ResponseMessage handleInvalidArgumentException(Exception e) {
         return ResponseMessage
                 .builder()
                 .status(ResponseMessageStatus.FAIL.status)
@@ -57,7 +57,7 @@ public class RestExceptionHandler {
 
     @ExceptionHandler(BadCredentialsException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public AbstractResponseMessage handleInvalidArgumentException(BadCredentialsException e) {
+    public ResponseMessage handleInvalidArgumentException(BadCredentialsException e) {
         return ResponseMessage
                 .builder()
                 .status(ResponseMessageStatus.FAIL.status)
@@ -67,7 +67,7 @@ public class RestExceptionHandler {
 
     @ExceptionHandler(AuthenticationException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
-    public AbstractResponseMessage handleAuthenticationException(AuthenticationException e) {
+    public ResponseMessage handleAuthenticationException(AuthenticationException e) {
         return ResponseMessage
                 .builder()
                 .status(ResponseMessageStatus.FAIL.status)
@@ -77,7 +77,7 @@ public class RestExceptionHandler {
 
     @ExceptionHandler(ResourceNotFoundException.class)
     @ResponseStatus(HttpStatus.NOT_FOUND)
-    public AbstractResponseMessage handleResourceNotFoundException(ResourceNotFoundException e) {
+    public ResponseMessage handleResourceNotFoundException(ResourceNotFoundException e) {
         return ResponseMessage
                 .builder()
                 .status(ResponseMessageStatus.FAIL.status)

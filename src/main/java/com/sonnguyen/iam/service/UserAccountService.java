@@ -41,7 +41,7 @@ public class UserAccountService {
                 .builder()
                 .status(ResponseMessageStatus.CONTINUOUS.status)
                 .content("")
-                .message("Account is registered successfully but still need to be verify")
+                .message("Account is registered successfully but still need to be verified")
                 .build();
     }
 }

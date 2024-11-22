@@ -60,6 +60,7 @@ public class AuthenticationService {
         return AuthenticateResponseMessage
                 .builder()
                 .token(temporaryJwt)
+                .status(ResponseMessageStatus.SUCCESS.status)
                 .message("Send received token along OTP to login")
                 .build();
     }
@@ -89,7 +90,7 @@ public class AuthenticationService {
                 .path("/")
                 .sameSite("None")
                 .httpOnly(true)
-                .maxAge(Duration.ofMinutes(5))
+                .maxAge(Duration.ofHours(3))
                 .build();
     }
 
