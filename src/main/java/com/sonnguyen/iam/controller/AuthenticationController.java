@@ -17,6 +17,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.*;
 
+import java.util.Map;
+
 @Slf4j
 @RestController
 @RequestMapping("/api/v1/auth")
@@ -30,11 +32,11 @@ public class AuthenticationController {
         return authenticationService.handleLoginRequest(accountPostVm);
     }
     @PostMapping(value = "/login/verify")
-    public ResponseEntity<ResponseMessage> handleLoginAcceptRequest(@RequestBody LoginAcceptRequestVm loginAcceptRequestVm) throws Exception {
+    public ResponseEntity<Map<String,Object>> handleLoginAcceptRequest(@RequestBody LoginAcceptRequestVm loginAcceptRequestVm) throws Exception {
         return authenticationService.handleLoginAcceptRequest(loginAcceptRequestVm);
     }
     @GetMapping(value = "/login/refresh")
-    public ResponseEntity<ResponseMessage> handleRefreshToken(HttpServletRequest request) throws Exception {
+    public ResponseEntity<Map<String,Object>> handleRefreshToken(HttpServletRequest request) throws Exception {
         return authenticationService.handleRefreshTokenRequest(request);
     }
     @PostMapping(value = "/password/change")
