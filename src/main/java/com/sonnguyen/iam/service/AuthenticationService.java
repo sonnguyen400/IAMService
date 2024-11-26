@@ -72,7 +72,7 @@ public class AuthenticationService {
                 .build();
     }
 
-    public ResponseEntity<ResponseMessage> handleLoginAcceptRequest(LoginAcceptRequestVm loginAcceptRequestVm) throws Exception {
+    public ResponseEntity<Map<String,Object>> handleLoginAcceptRequest(LoginAcceptRequestVm loginAcceptRequestVm) throws Exception {
         Claims claims = jwtUtils.validateToken(loginAcceptRequestVm.token());
         String subject = claims.get("principal", String.class);
         String scope = claims.get("scope", String.class);
@@ -85,14 +85,13 @@ public class AuthenticationService {
         throw new AuthenticationException("Invalid OTP");
     }
 
-    public ResponseEntity<ResponseMessage> handleLoginSuccess(String subject, String scope) throws Exception {
+    public ResponseEntity<Map<String,Object>> handleLoginSuccess(String subject, String scope) throws Exception {
         ResponseCookie accessCookie=generateAccessCookie(subject,scope);
-        ResponseCookie refreshCookie=generateRefreshCookie(subject);
+        Map<String,Object> claims=Map.of("principal",subject);
+        String refreshToken=jwtUtils.generateToken(claims,"",Instant.now().plus(Duration.ofDays(7)));
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, accessCookie.toString(),refreshCookie.toString())
-                .body(ResponseMessage.builder().status(ResponseMessageStatus.SUCCESS.status)
-                        .message("Login successfully")
-                        .build());
+                .header(HttpHeaders.SET_COOKIE, accessCookie.toString())
+                .body(Map.of(REFRESH_TOKEN,refreshToken));
     }
 
     public ResponseCookie generateAccessCookie(String subject, String scope) throws Exception {
@@ -160,29 +159,23 @@ public class AuthenticationService {
                 .build();
     }
 
-    public ResponseCookie generateRefreshCookie(String email) throws Exception {
-        Map<String,Object> claims=Map.of("principal",email);
-        String refreshToken=jwtUtils.generateToken(claims,"",Instant.now().plus(Duration.ofDays(7)));
-        return ResponseCookie.from(REFRESH_TOKEN, refreshToken)
-                .secure(true)
-                .path("/")
-                .sameSite("None")
-                .httpOnly(true)
-                .maxAge(Duration.ofHours(3))
-                .build();
-    }
-    public ResponseEntity<ResponseMessage> handleRefreshTokenRequest(HttpServletRequest request) throws Exception {
-        String refreshToken=RequestUtils.extractValueFromCookie(request, REFRESH_TOKEN);
+
+    public ResponseEntity<Map<String,Object>> handleRefreshTokenRequest(HttpServletRequest request) throws Exception {
+        // Validate Refresh Token
+        String refreshToken=request.getHeader(REFRESH_TOKEN);
         if(forbiddenTokenService.existsByToken(refreshToken)) throw new AuthenticationException("Invalid refresh token");
         String principal=jwtUtils.validateToken(refreshToken).get("principal",String.class);
+
+        // Generate Access token
         UserDetailsImpl userDetails=userDetailsService.loadUserByUsername(principal);
         String scope=userDetails.getAuthorities().stream().map(GrantedAuthority::getAuthority).collect(Collectors.joining(" "));
-        ResponseCookie accessCookie=generateAccessCookie(userDetails.getEmail(),scope);
-        ResponseCookie refreshCookie=generateRefreshCookie(userDetails.getEmail());
+        ResponseCookie newAccessCookie=generateAccessCookie(userDetails.getEmail(),scope);
+
+        // Generate Refresh token
+        Map<String,Object> claims=Map.of("principal",principal);
+        String newRefreshToken=jwtUtils.generateToken(claims,"",Instant.now().plus(Duration.ofDays(7)));
         return ResponseEntity.ok()
-                .header(HttpHeaders.SET_COOKIE, accessCookie.toString(),refreshCookie.toString())
-                .body(ResponseMessage.builder().status(ResponseMessageStatus.SUCCESS.status)
-                        .message("Refresh token successfully")
-                        .build());
+                .header(HttpHeaders.SET_COOKIE, newAccessCookie.toString())
+                .body(Map.of(REFRESH_TOKEN,refreshToken));
     }
 }
